@@ -6,8 +6,7 @@ import {
   GitBranch, 
   RotateCw,
   ArrowRight,
-  Layers,
-  Code2
+  Layers
 } from 'lucide-react';
 import { soundManager } from '../../utils/sound';
 
@@ -15,15 +14,16 @@ interface CinematicIntroProps {
   onComplete: () => void;
 }
 
-export const CinematicIntro: React.FC<CinematicIntroProps> = ({ onComplete }) => {
-  // Check reduced motion preference
-  const prefersReducedMotion = typeof window !== 'undefined' && 
-    window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const TOTAL_DURATION = 4200; // ms: Master timeline authoritative duration
 
-  const [currentScene, setCurrentScene] = useState<1 | 2 | 3 | 4 | 5>(() => prefersReducedMotion ? 5 : 1);
-  const [progressPercent, setProgressPercent] = useState<number>(0);
+export const CinematicIntro: React.FC<CinematicIntroProps> = ({ onComplete }) => {
+  const [currentScene, setCurrentScene] = useState<1 | 2 | 3 | 4 | 5>(1);
+  const [progress, setProgress] = useState<number>(0); // Strictly 0 at mount
   const [isFadingOut, setIsFadingOut] = useState<boolean>(false);
-  const isFinishedRef = useRef(false);
+
+  const startTimestampRef = useRef<number | null>(null);
+  const rafIdRef = useRef<number | null>(null);
+  const isFinishedRef = useRef<boolean>(false);
   const onCompleteRef = useRef(onComplete);
   onCompleteRef.current = onComplete;
 
@@ -36,17 +36,18 @@ export const CinematicIntro: React.FC<CinematicIntroProps> = ({ onComplete }) =>
     };
   }, []);
 
+  // Single authoritative master timeline driven by requestAnimationFrame & performance.now()
   useEffect(() => {
     if (isFinishedRef.current) return;
-
-    // Reduced motion duration: 1.2s static accessible identity screen
-    // Standard cinematic sequence duration: 4.2s (4200ms), followed by smooth 300ms transition
-    const totalDuration = prefersReducedMotion ? 1200 : 4200;
-    const startTime = Date.now();
 
     const finishIntro = () => {
       if (isFinishedRef.current) return;
       isFinishedRef.current = true;
+      if (rafIdRef.current !== null) {
+        cancelAnimationFrame(rafIdRef.current);
+        rafIdRef.current = null;
+      }
+      setProgress(1);
       setIsFadingOut(true);
       soundManager.playClick();
       setTimeout(() => {
@@ -54,63 +55,85 @@ export const CinematicIntro: React.FC<CinematicIntroProps> = ({ onComplete }) =>
       }, 300);
     };
 
-    // Fail-safe timeout: never leave the user stuck on black
+    // Fail-safe fallback timeout: never leave the user stuck on black
     const fallbackTimer = setTimeout(() => {
       if (!isFinishedRef.current) {
         finishIntro();
       }
-    }, totalDuration + 1000);
+    }, TOTAL_DURATION + 1000);
 
-    // Single authoritative master timeline loop: drives progress bar and scenes synchronously
-    const timer = setInterval(() => {
-      const elapsed = Date.now() - startTime;
-      const pct = Math.min(100, Math.round((elapsed / totalDuration) * 100));
-      setProgressPercent(pct);
+    const tick = (now: number) => {
+      if (isFinishedRef.current) return;
 
-      if (prefersReducedMotion) {
-        setCurrentScene(5);
-      } else {
-        // Exact five-scene sequence breakdown:
-        // Scene 1: 0.0s - 0.75s (0 - 750ms) -> Awakening
-        // Scene 2: 0.75s - 1.55s (750 - 1550ms) -> Memory Comes Alive
-        // Scene 3: 1.55s - 2.45s (1550 - 2450ms) -> Logic Takes Shape
-        // Scene 4: 2.45s - 3.25s (2450 - 3250ms) -> RevPlay Identity
-        // Scene 5: 3.25s - 4.20s (3250 - 4200ms) -> Final Reveal & Automatic Entry
-        if (elapsed < 750) {
-          setCurrentScene(1);
-        } else if (elapsed < 1550) {
-          setCurrentScene(2);
-        } else if (elapsed < 2450) {
-          setCurrentScene(3);
-        } else if (elapsed < 3250) {
-          setCurrentScene(4);
-        } else {
-          setCurrentScene(5);
-        }
+      // Set the intro's start timestamp once when playback begins
+      if (startTimestampRef.current === null) {
+        startTimestampRef.current = now;
       }
 
-      if (elapsed >= totalDuration) {
-        clearInterval(timer);
+      const elapsed = now - startTimestampRef.current;
+      const clampedProgress = Math.min(1, Math.max(0, elapsed / TOTAL_DURATION));
+      setProgress(clampedProgress);
+
+      // Fixed master scene boundaries:
+      // Awakening:     0 ms –  750 ms
+      // Memory:      750 ms – 1550 ms
+      // Logic:      1550 ms – 2450 ms
+      // Identity:   2450 ms – 3250 ms
+      // Final reveal: 3250 ms – 4200 ms
+      if (elapsed < 750) {
+        setCurrentScene(1);
+      } else if (elapsed < 1550) {
+        setCurrentScene(2);
+      } else if (elapsed < 2450) {
+        setCurrentScene(3);
+      } else if (elapsed < 3250) {
+        setCurrentScene(4);
+      } else {
+        setCurrentScene(5);
+      }
+
+      if (elapsed >= TOTAL_DURATION) {
         clearTimeout(fallbackTimer);
         finishIntro();
+      } else {
+        rafIdRef.current = requestAnimationFrame(tick);
       }
-    }, 20);
+    };
+
+    rafIdRef.current = requestAnimationFrame(tick);
 
     return () => {
-      clearInterval(timer);
+      if (rafIdRef.current !== null) {
+        cancelAnimationFrame(rafIdRef.current);
+        rafIdRef.current = null;
+      }
       clearTimeout(fallbackTimer);
     };
-  }, [prefersReducedMotion]);
+  }, []);
+
+  const progressPercent = Math.min(100, Math.round(progress * 100));
+
+  // Ambient floating C runes for Scene 1 (Awakening)
+  const codeRunes = [
+    { char: 'int main(void)', x: '8%', y: '22%' },
+    { char: '{ ... }', x: '84%', y: '18%' },
+    { char: 'char *ptr;', x: '80%', y: '68%' },
+    { char: '&memory', x: '10%', y: '72%' },
+    { char: '->', x: '50%', y: '14%' },
+    { char: '0x7FFE_4A20', x: '10%', y: '46%' },
+    { char: 'return 0;', x: '82%', y: '46%' },
+  ];
 
   return (
     <div 
-      className={`fixed inset-0 z-[9999] bg-[#04060a] text-slate-100 flex flex-col justify-between overflow-hidden select-none transition-all duration-300 ${
+      className={`fixed inset-0 z-[9999] bg-[#04060a] text-slate-100 flex flex-col justify-between overflow-hidden select-none transition-all duration-300 revplay-cinematic-intro intro-active-scene-${currentScene} ${
         isFadingOut ? 'opacity-0 scale-[1.02] pointer-events-none' : 'opacity-100 scale-100'
       }`}
       aria-label="RevPlay Cinematic Introduction"
+      data-scene={currentScene}
     >
       {/* Background Animated Tech Grid & Deep Navy Radial Glow */}
-      <div className="absolute inset-0 pointer-events-none">
+      <div className="absolute inset-0 pointer-events-none z-0">
         <svg className="w-full h-full opacity-25" xmlns="http://www.w3.org/2000/svg">
           <defs>
             <pattern id="intro-grid-pattern" width="36" height="36" patternUnits="userSpaceOnUse">
@@ -157,8 +180,23 @@ export const CinematicIntro: React.FC<CinematicIntroProps> = ({ onComplete }) =>
         {/* ========================================================= */}
         {/* SCENE 01: AWAKENING (0.0s – 0.75s)                         */}
         {/* ========================================================= */}
-        {currentScene === 1 && !prefersReducedMotion && (
-          <div className="text-center space-y-6 max-w-2xl animate-in duration-300 relative w-full px-4">
+        {currentScene === 1 && (
+          <div className="revplay-intro-scene revplay-intro-scene-1 revplay-intro-scene-active text-center space-y-6 max-w-2xl relative w-full px-4">
+            {/* Ambient floating C runes */}
+            {codeRunes.map((rune, idx) => (
+              <span
+                key={idx}
+                className="absolute font-mono text-[11px] sm:text-xs font-bold text-cyan-400/50 select-none pointer-events-none drop-shadow-[0_0_8px_rgba(6,182,212,0.6)] hidden sm:inline intro-rune"
+                style={{ 
+                  left: rune.x, 
+                  top: rune.y,
+                  animationDelay: `${idx * 0.25}s`
+                }}
+              >
+                {rune.char}
+              </span>
+            ))}
+
             {/* Top row fragments */}
             <div className="flex items-center justify-between w-full max-w-lg mx-auto">
               <span className="font-mono text-[11px] sm:text-xs font-bold text-cyan-300 px-3 py-1.5 rounded-lg bg-slate-900/90 border border-cyan-500/50 shadow-md glow-cyan intro-fragment-left">
@@ -199,8 +237,8 @@ export const CinematicIntro: React.FC<CinematicIntroProps> = ({ onComplete }) =>
         {/* ========================================================= */}
         {/* SCENE 02: MEMORY COMES ALIVE (0.75s – 1.55s)               */}
         {/* ========================================================= */}
-        {currentScene === 2 && !prefersReducedMotion && (
-          <div className="text-center space-y-4 max-w-2xl animate-in duration-300 w-full px-4">
+        {currentScene === 2 && (
+          <div className="revplay-intro-scene revplay-intro-scene-2 revplay-intro-scene-active intro-scene-fade text-center space-y-4 max-w-2xl w-full px-4">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-950/80 border border-emerald-800 text-xs font-mono text-emerald-300 shadow-sm">
               <Cpu className="w-3.5 h-3.5 text-emerald-400" />
               <span>Scene 02 • Memory Comes Alive</span>
@@ -232,7 +270,7 @@ export const CinematicIntro: React.FC<CinematicIntroProps> = ({ onComplete }) =>
                     className="pointer-beam-svg"
                   />
                   {/* Arrowhead at target x */}
-                  <polygon points="17,22 22,18 22,26" fill="#10b981" />
+                  <polygon points="17,22 22,18 22,26" fill="#10b981" className="pointer-beam-arrow" />
                 </svg>
               </div>
 
@@ -278,8 +316,8 @@ export const CinematicIntro: React.FC<CinematicIntroProps> = ({ onComplete }) =>
         {/* ========================================================= */}
         {/* SCENE 03: LOGIC TAKES SHAPE (1.55s – 2.45s)                */}
         {/* ========================================================= */}
-        {currentScene === 3 && !prefersReducedMotion && (
-          <div className="text-center space-y-4 max-w-2xl animate-in duration-300 w-full px-4">
+        {currentScene === 3 && (
+          <div className="revplay-intro-scene revplay-intro-scene-3 revplay-intro-scene-active intro-scene-fade text-center space-y-4 max-w-2xl w-full px-4">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-950/80 border border-indigo-800 text-xs font-mono text-indigo-300 shadow-sm">
               <GitBranch className="w-3.5 h-3.5 text-indigo-400" />
               <span>Scene 03 • Logic Takes Shape</span>
@@ -358,8 +396,8 @@ export const CinematicIntro: React.FC<CinematicIntroProps> = ({ onComplete }) =>
         {/* ========================================================= */}
         {/* SCENE 04: REVPLAY IDENTITY (2.45s – 3.25s)                 */}
         {/* ========================================================= */}
-        {currentScene === 4 && !prefersReducedMotion && (
-          <div className="text-center space-y-5 max-w-xl animate-in duration-300 w-full px-4">
+        {currentScene === 4 && (
+          <div className="revplay-intro-scene revplay-intro-scene-4 revplay-intro-scene-active intro-scene-fade text-center space-y-5 max-w-xl w-full px-4">
             <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-tr from-cyan-600 via-indigo-600 to-purple-600 p-0.5 shadow-2xl glow-cyan mx-auto flex items-center justify-center emblem-converge">
               <div className="w-full h-full bg-slate-950 rounded-[14px] flex items-center justify-center">
                 <Gamepad2 className="w-8 h-8 sm:w-10 sm:h-10 text-cyan-400" />
@@ -386,8 +424,8 @@ export const CinematicIntro: React.FC<CinematicIntroProps> = ({ onComplete }) =>
         {/* ========================================================= */}
         {/* SCENE 05: FINAL REVEAL AND AUTOMATIC ENTRY (3.25s – 4.20s) */}
         {/* ========================================================= */}
-        {(currentScene === 5 || prefersReducedMotion) && (
-          <div className="text-center space-y-5 max-w-xl animate-in duration-300 relative overflow-hidden w-full px-4">
+        {currentScene === 5 && (
+          <div className="revplay-intro-scene revplay-intro-scene-5 revplay-intro-scene-active intro-scene-fade text-center space-y-5 max-w-xl relative overflow-hidden w-full px-4">
             {/* Finishing light sweep pass */}
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-cyan-400/25 to-transparent pointer-events-none intro-light-sweep" />
 
@@ -426,12 +464,15 @@ export const CinematicIntro: React.FC<CinematicIntroProps> = ({ onComplete }) =>
           {/* Progress Bar Track */}
           <div className="h-1.5 w-full bg-slate-900 rounded-full overflow-hidden border border-slate-800">
             <div 
-              className="h-full bg-gradient-to-r from-cyan-500 via-indigo-500 to-purple-500 transition-all duration-75 ease-out rounded-full"
-              style={{ width: `${progressPercent}%` }}
+              className="h-full bg-gradient-to-r from-cyan-500 via-indigo-500 to-purple-500 rounded-full"
+              style={{ 
+                width: `${(progress * 100).toFixed(2)}%`,
+                transition: 'none'
+              }}
             />
           </div>
 
-          {/* 5-Scene Stage Markers (Synchronized with timeline) */}
+          {/* 5-Scene Stage Markers (Synchronized with master timeline) */}
           <div className="flex items-center justify-between text-[8px] sm:text-[10px] font-mono text-slate-500">
             <span className={currentScene >= 1 ? 'text-cyan-400 font-bold' : ''}>1. Awakening</span>
             <span className={currentScene >= 2 ? 'text-emerald-400 font-bold' : ''}>2. Memory</span>

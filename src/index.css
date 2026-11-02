@@ -98,7 +98,7 @@
 }
 
 /* ========================================================================= */
-/* REVPLAY CINEMATIC INTRO: 5-SCENE FINITE SINGLE-PASS ANIMATIONS           */
+/* REVPLAY CINEMATIC INTRO: 5-SCENE MASTER TIMELINE ANIMATIONS               */
 /* ========================================================================= */
 
 @keyframes sceneFadeIn {
@@ -116,7 +116,32 @@
   animation: sceneFadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) 1 forwards;
 }
 
-/* Scene 1: Awakening Fragment Entrances */
+/* Dedicated Scoped Intro Styles */
+.revplay-cinematic-intro {
+  isolation: isolate;
+}
+
+/* Scene Entrance Transition for Scenes 2 to 5 */
+@keyframes introSceneEntrance {
+  0% {
+    opacity: 0;
+    transform: scale(0.97) translateY(4px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.revplay-cinematic-intro .intro-scene-fade {
+  animation: introSceneEntrance 0.28s cubic-bezier(0.16, 1, 0.3, 1) 1 both;
+}
+
+/* Scene 1: Awakening (Immediate 0ms Visibility) */
+.revplay-cinematic-intro .revplay-intro-scene-1 {
+  opacity: 1;
+}
+
 @keyframes introFragmentLeft {
   0% { opacity: 0; transform: translateX(-32px) scale(0.92); }
   100% { opacity: 1; transform: translateX(0) scale(1); }
@@ -125,114 +150,119 @@
   0% { opacity: 0; transform: translateX(32px) scale(0.92); }
   100% { opacity: 1; transform: translateX(0) scale(1); }
 }
-@keyframes introFragmentTop {
-  0% { opacity: 0; transform: translateY(-24px) scale(0.92); }
-  100% { opacity: 1; transform: translateY(0) scale(1); }
-}
-@keyframes introFragmentBottom {
-  0% { opacity: 0; transform: translateY(24px) scale(0.92); }
-  100% { opacity: 1; transform: translateY(0) scale(1); }
+@keyframes introRuneFloat {
+  0%, 100% { transform: translateY(0); opacity: 0.45; }
+  50% { transform: translateY(-6px); opacity: 0.85; }
 }
 
-.intro-fragment-left {
-  animation: introFragmentLeft 0.5s cubic-bezier(0.16, 1, 0.3, 1) 1 forwards;
+.revplay-cinematic-intro .intro-fragment-left {
+  animation: introFragmentLeft 0.38s cubic-bezier(0.16, 1, 0.3, 1) 0.04s 1 both;
 }
-.intro-fragment-right {
-  animation: introFragmentRight 0.5s cubic-bezier(0.16, 1, 0.3, 1) 1 forwards;
+.revplay-cinematic-intro .intro-fragment-right {
+  animation: introFragmentRight 0.38s cubic-bezier(0.16, 1, 0.3, 1) 0.04s 1 both;
 }
-.intro-fragment-top {
-  animation: introFragmentTop 0.5s cubic-bezier(0.16, 1, 0.3, 1) 1 forwards;
-}
-.intro-fragment-bottom {
-  animation: introFragmentBottom 0.5s cubic-bezier(0.16, 1, 0.3, 1) 1 forwards;
+.revplay-cinematic-intro .intro-rune {
+  animation: introRuneFloat 2.4s ease-in-out infinite;
 }
 
-/* Scene 2: Memory Comes Alive */
-@keyframes memoryCellPop {
-  0% { opacity: 0; transform: scale(0.8) translateY(10px); }
-  60% { opacity: 1; transform: scale(1.04) translateY(0); }
+/* Scene 2: Memory Comes Alive (750ms – 1550ms) */
+@keyframes introMemoryCellPop {
+  0% { opacity: 0; transform: scale(0.82) translateY(12px); }
+  65% { opacity: 1; transform: scale(1.03) translateY(0); }
   100% { opacity: 1; transform: scale(1) translateY(0); }
 }
-.memory-cell-1 { animation: memoryCellPop 0.4s cubic-bezier(0.16, 1, 0.3, 1) 0.05s 1 forwards; }
-.memory-cell-2 { animation: memoryCellPop 0.4s cubic-bezier(0.16, 1, 0.3, 1) 0.18s 1 forwards; }
-.memory-cell-3 { animation: memoryCellPop 0.4s cubic-bezier(0.16, 1, 0.3, 1) 0.32s 1 forwards; }
+.revplay-cinematic-intro .memory-cell-1 {
+  animation: introMemoryCellPop 0.35s cubic-bezier(0.16, 1, 0.3, 1) 0.04s 1 both;
+}
+.revplay-cinematic-intro .memory-cell-2 {
+  animation: introMemoryCellPop 0.35s cubic-bezier(0.16, 1, 0.3, 1) 0.12s 1 both;
+}
+.revplay-cinematic-intro .memory-cell-3 {
+  animation: introMemoryCellPop 0.35s cubic-bezier(0.16, 1, 0.3, 1) 0.20s 1 both;
+}
 
-@keyframes pointerBeamDraw {
-  0% { stroke-dashoffset: 90; opacity: 0; }
-  30% { opacity: 1; }
+@keyframes introPointerBeamDraw {
+  0% { stroke-dashoffset: 85; opacity: 0; }
+  25% { opacity: 1; }
   100% { stroke-dashoffset: 0; opacity: 1; }
 }
-.pointer-beam-svg {
-  stroke-dasharray: 90;
-  animation: pointerBeamDraw 0.55s ease-out 0.12s 1 forwards;
+.revplay-cinematic-intro .pointer-beam-svg {
+  stroke-dasharray: 85;
+  stroke-dashoffset: 85;
+  animation: introPointerBeamDraw 0.42s ease-out 0.14s 1 both;
 }
 
-/* Scene 3: Logic Takes Shape */
-@keyframes branchDraw {
-  0% { stroke-dashoffset: 120; opacity: 0; }
+@keyframes introArrowFade {
+  0% { opacity: 0; transform: scale(0.5); }
+  100% { opacity: 1; transform: scale(1); }
+}
+.revplay-cinematic-intro .pointer-beam-arrow {
+  animation: introArrowFade 0.25s ease-out 0.32s 1 both;
+}
+
+/* Scene 3: Logic Takes Shape (1550ms – 2450ms) */
+@keyframes introBranchDraw {
+  0% { stroke-dashoffset: 110; opacity: 0; }
   100% { stroke-dashoffset: 0; opacity: 1; }
 }
-.branch-true-line {
-  stroke-dasharray: 120;
-  animation: branchDraw 0.55s ease-out 0.1s 1 forwards;
+.revplay-cinematic-intro .branch-true-line {
+  stroke-dasharray: 110;
+  stroke-dashoffset: 110;
+  animation: introBranchDraw 0.42s ease-out 0.08s 1 both;
 }
 
-@keyframes loopSpinSingle {
-  0% { stroke-dashoffset: 140; transform: rotate(0deg); }
+@keyframes introLoopSpinSingle {
+  0% { stroke-dashoffset: 114; transform: rotate(0deg); }
   100% { stroke-dashoffset: 0; transform: rotate(360deg); }
 }
-.loop-svg-circle {
-  stroke-dasharray: 140;
-  transform-origin: 24px 24px;
-  animation: loopSpinSingle 0.7s ease-out 0.1s 1 forwards;
+.revplay-cinematic-intro .loop-svg-circle {
+  stroke-dasharray: 114;
+  stroke-dashoffset: 114;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: introLoopSpinSingle 0.55s ease-out 0.08s 1 both;
 }
 
-@keyframes arrayCellSlide {
-  0% { opacity: 0; transform: translateX(-16px); }
-  100% { opacity: 1; transform: translateX(0); }
+@keyframes introArrayCellSlide {
+  0% { opacity: 0; transform: translateX(-14px) scale(0.9); }
+  100% { opacity: 1; transform: translateX(0) scale(1); }
 }
-.array-cell-0 { animation: arrayCellSlide 0.3s ease-out 0.08s 1 forwards; }
-.array-cell-1 { animation: arrayCellSlide 0.3s ease-out 0.16s 1 forwards; }
-.array-cell-2 { animation: arrayCellSlide 0.3s ease-out 0.24s 1 forwards; }
-.array-cell-3 { animation: arrayCellSlide 0.3s ease-out 0.32s 1 forwards; }
+.revplay-cinematic-intro .array-cell-0 { animation: introArrayCellSlide 0.22s ease-out 0.05s 1 both; }
+.revplay-cinematic-intro .array-cell-1 { animation: introArrayCellSlide 0.22s ease-out 0.12s 1 both; }
+.revplay-cinematic-intro .array-cell-2 { animation: introArrayCellSlide 0.22s ease-out 0.19s 1 both; }
+.revplay-cinematic-intro .array-cell-3 { animation: introArrayCellSlide 0.22s ease-out 0.26s 1 both; }
 
-/* Scene 4: RevPlay Identity */
-@keyframes emblemConverge {
-  0% { opacity: 0; transform: scale(0.65) translateY(12px); filter: blur(6px); }
+/* Scene 4: RevPlay Identity (2450ms – 3250ms) */
+@keyframes introEmblemConverge {
+  0% { opacity: 0; transform: scale(0.68) translateY(14px); filter: blur(6px); }
   100% { opacity: 1; transform: scale(1) translateY(0); filter: blur(0); }
 }
-.emblem-converge {
-  animation: emblemConverge 0.55s cubic-bezier(0.16, 1, 0.3, 1) 1 forwards;
+.revplay-cinematic-intro .emblem-converge {
+  animation: introEmblemConverge 0.45s cubic-bezier(0.16, 1, 0.3, 1) 0.05s 1 both;
 }
 
-@keyframes wordmarkReveal {
-  0% {
-    opacity: 0;
-    transform: translateY(14px) scale(0.92);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
+@keyframes introWordmarkReveal {
+  0% { opacity: 0; transform: translateY(12px) scale(0.94); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
 }
-.wordmark-wipe {
-  animation: wordmarkReveal 0.45s cubic-bezier(0.16, 1, 0.3, 1) 0.08s 1 forwards;
+.revplay-cinematic-intro .wordmark-wipe {
+  animation: introWordmarkReveal 0.42s cubic-bezier(0.16, 1, 0.3, 1) 0.12s 1 both;
 }
 
-/* Scene 5: Finishing Light Sweep */
-@keyframes sweepPass {
+/* Scene 5: Finishing Light Sweep (3250ms – 4200ms) */
+@keyframes introSweepPass {
   0% { transform: translateX(-120%); opacity: 0; }
-  30% { opacity: 0.85; }
-  70% { opacity: 0.85; }
+  30% { opacity: 0.9; }
+  70% { opacity: 0.9; }
   100% { transform: translateX(220%); opacity: 0; }
 }
-.intro-light-sweep {
-  animation: sweepPass 0.75s ease-in-out 0.1s 1 forwards;
+.revplay-cinematic-intro .intro-light-sweep {
+  animation: introSweepPass 0.65s ease-in-out 0.05s 1 both;
 }
 
-/* Reduced motion preference compliance */
+/* Reduced motion preference compliance (scoped to avoid blanking out the intro sequence) */
 @media (prefers-reduced-motion: reduce) {
-  *, ::before, ::after {
+  *:not(.revplay-cinematic-intro, .revplay-cinematic-intro *) {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
