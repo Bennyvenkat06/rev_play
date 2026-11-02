@@ -86,7 +86,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         </button>
 
         {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center gap-1">
+        <nav className="hidden lg:flex items-center gap-1">
           {navItems.map((item) => {
             const Icon = item.icon;
             const active = currentView === item.id;
@@ -110,7 +110,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         {/* User Stats & Controls */}
         <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
           {/* Level & XP Capsule (compact on small mobile) */}
-          <div className="flex items-center gap-1.5 sm:gap-2 bg-slate-900/90 border border-slate-800 px-2 sm:px-3 py-1.5 rounded-xl font-mono text-xs">
+          <div className="flex items-center gap-1 sm:gap-2 bg-slate-900/90 border border-slate-800 px-1.5 sm:px-3 py-1.5 rounded-xl font-mono text-xs">
             <div className="flex items-center gap-1 text-cyan-400 font-bold">
               <Trophy className="w-3.5 h-3.5 text-amber-400 shrink-0" />
               <span>LVL {progress.level}</span>
@@ -135,7 +135,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* Mobile Menu Toggle (minimum 40x40px touch target) */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden w-10 h-10 flex items-center justify-center rounded-xl bg-slate-900/90 border border-slate-800 text-slate-400 hover:text-white shrink-0 active:scale-95"
+            className="lg:hidden w-10 h-10 flex items-center justify-center rounded-xl bg-slate-900/90 border border-slate-800 text-slate-400 hover:text-white shrink-0 active:scale-95"
             aria-label="Toggle navigation menu"
           >
             {mobileMenuOpen ? <X className="w-5 h-5 text-cyan-400" /> : <Menu className="w-5 h-5" />}
@@ -153,7 +153,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
-        <div className="md:hidden bg-slate-950/95 backdrop-blur-xl border-b border-slate-800 px-4 py-3 space-y-1 animate-in slide-in-from-top-4">
+        <div className="lg:hidden bg-slate-950/95 backdrop-blur-xl border-b border-slate-800 px-4 py-3 space-y-1 animate-in slide-in-from-top-4">
           {navItems.map((item) => {
             const Icon = item.icon;
             const active = currentView === item.id;

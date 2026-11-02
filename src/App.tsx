@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Lenis from 'lenis';
 import { Navbar, NavViewMode } from './components/layout/Navbar';
 import { Footer } from './components/layout/Footer';
@@ -131,12 +131,12 @@ export const App: React.FC = () => {
     }
   };
 
-  const handleIntroComplete = () => {
+  const handleIntroComplete = useCallback(() => {
     if (!isIntroPreview) {
       markIntroSeen();
     }
     setShowIntro(false);
-  };
+  }, [isIntroPreview]);
 
   const handleReturnToUnit = () => {
     setIsResultsModalOpen(false);
@@ -215,15 +215,17 @@ export const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#07090e] text-slate-100 flex flex-col font-sans antialiased arcade-grid selection:bg-cyan-500 selection:text-black relative">
+    <div className="min-h-screen bg-[#07090e] text-slate-100 flex flex-col font-sans antialiased arcade-grid selection:bg-cyan-500 selection:text-black relative overflow-x-clip">
       {/* First-Visit Cinematic Intro Overlay */}
       {showIntro && (
         <CinematicIntro onComplete={handleIntroComplete} />
       )}
 
-      {/* Subtle Floating Gradient Ambient Orbs (Outer Edges) */}
-      <div className="fixed top-12 left-[-80px] w-96 h-96 bg-cyan-600/10 rounded-full blur-3xl pointer-events-none floating-orb-1" />
-      <div className="fixed bottom-12 right-[-80px] w-96 h-96 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none floating-orb-2" />
+      {/* Subtle Floating Gradient Ambient Orbs (Clipped cleanly to viewport) */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
+        <div className="absolute top-12 left-0 sm:-left-20 w-60 sm:w-96 h-60 sm:h-96 bg-cyan-600/10 rounded-full blur-3xl floating-orb-1" />
+        <div className="absolute bottom-12 right-0 sm:-right-20 w-60 sm:w-96 h-60 sm:h-96 bg-indigo-600/10 rounded-full blur-3xl floating-orb-2" />
+      </div>
 
       {/* Top HUD Navigation */}
       <Navbar

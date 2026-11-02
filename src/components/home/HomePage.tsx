@@ -216,10 +216,10 @@ export const HomePage: React.FC<HomePageProps> = ({
               <div className="space-y-2 bg-slate-900/60 p-3 rounded-xl border border-slate-800/60 flex flex-col justify-between">
                 <div>
                   <div className="text-slate-500 text-[11px] mb-1.5">// 2. Dynamic Memory & Logic</div>
-                  <div className="flex items-center gap-2 text-[11px]">
-                    <span className="px-2 py-0.5 rounded bg-slate-800 text-slate-300">x = 1 (TRUE)</span>
+                  <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 text-[10px] sm:text-[11px]">
+                    <span className="px-1.5 sm:px-2 py-0.5 rounded bg-slate-800 text-slate-300">x = 1 (TRUE)</span>
                     <span className="text-cyan-400 font-bold">→</span>
-                    <span className="px-2 py-0.5 rounded bg-emerald-950 border border-emerald-800 text-emerald-300">
+                    <span className="px-1.5 sm:px-2 py-0.5 rounded bg-emerald-950 border border-emerald-800 text-emerald-300">
                       Short-circuit: ++y skipped
                     </span>
                   </div>
