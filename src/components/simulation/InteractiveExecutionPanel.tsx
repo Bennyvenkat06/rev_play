@@ -212,7 +212,7 @@ export const InteractiveExecutionPanel: React.FC<InteractiveExecutionPanelProps>
         <div className="p-5 space-y-5">
           {/* Tab Navigation */}
           <div className="flex items-center justify-between border-b border-slate-800 pb-3 flex-wrap gap-2">
-            <div className="flex items-center gap-1.5 bg-slate-900/90 p-1 rounded-xl border border-slate-800">
+            <div className="flex items-center gap-1.5 bg-slate-900/90 p-1 rounded-xl border border-slate-800 overflow-x-auto max-w-full">
               <button
                 type="button"
                 onClick={() => {

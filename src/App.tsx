@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import Lenis from 'lenis';
-import { Navbar } from './components/layout/Navbar';
+import { Navbar, NavViewMode } from './components/layout/Navbar';
 import { Footer } from './components/layout/Footer';
+import { HomePage } from './components/home/HomePage';
+import { CinematicIntro } from './components/intro/CinematicIntro';
 import { StatsHeader } from './components/dashboard/StatsHeader';
 import { WorldMap } from './components/dashboard/WorldMap';
 import { CoverageMatrix } from './components/coverage/CoverageMatrix';
@@ -35,7 +37,7 @@ import { FileDetective } from './games/unit5/FileDetective';
 
 // Data & Utils
 import { REVISION_NOTES_DATABASE } from './data/revisionNotesData';
-import { loadUserProgress, recordGameCompletion, saveUserProgress } from './utils/storage';
+import { loadUserProgress, recordGameCompletion, saveUserProgress, hasSeenIntro, markIntroSeen } from './utils/storage';
 import { soundManager } from './utils/sound';
 import { UserProgress } from './types/progress';
 import { PlayerGameResult } from './types/games';
@@ -43,8 +45,12 @@ import { RevisionNote } from './types/notes';
 
 export const App: React.FC = () => {
   const [progress, setProgress] = useState<UserProgress>(loadUserProgress);
-  const [currentView, setCurrentView] = useState<'dashboard' | 'notes' | 'coverage' | 'lab'>('dashboard');
+  const [currentView, setCurrentView] = useState<NavViewMode>('home');
   const [activeGameId, setActiveGameId] = useState<string | null>(null);
+
+  // Check if developer/tester requested intro preview via URL query parameter (?introPreview=1)
+  const isIntroPreview = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('introPreview') === '1';
+  const [showIntro, setShowIntro] = useState<boolean>(() => isIntroPreview || !hasSeenIntro());
 
   // Modals state
   const [activeNote, setActiveNote] = useState<RevisionNote | null>(null);
@@ -125,10 +131,17 @@ export const App: React.FC = () => {
     }
   };
 
+  const handleIntroComplete = () => {
+    if (!isIntroPreview) {
+      markIntroSeen();
+    }
+    setShowIntro(false);
+  };
+
   const handleReturnToUnit = () => {
     setIsResultsModalOpen(false);
     setActiveGameId(null);
-    setCurrentView('dashboard');
+    setCurrentView('syllabus');
   };
 
   const renderActiveGame = () => {
@@ -202,7 +215,12 @@ export const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#07090e] text-slate-100 flex flex-col font-sans antialiased arcade-grid selection:bg-cyan-500 selection:text-black relative overflow-hidden">
+    <div className="min-h-screen bg-[#07090e] text-slate-100 flex flex-col font-sans antialiased arcade-grid selection:bg-cyan-500 selection:text-black relative">
+      {/* First-Visit Cinematic Intro Overlay */}
+      {showIntro && (
+        <CinematicIntro onComplete={handleIntroComplete} />
+      )}
+
       {/* Subtle Floating Gradient Ambient Orbs (Outer Edges) */}
       <div className="fixed top-12 left-[-80px] w-96 h-96 bg-cyan-600/10 rounded-full blur-3xl pointer-events-none floating-orb-1" />
       <div className="fixed bottom-12 right-[-80px] w-96 h-96 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none floating-orb-2" />
@@ -227,32 +245,42 @@ export const App: React.FC = () => {
           </div>
         ) : (
           <div className="space-y-8 animate-in fade-in duration-200">
-            {/* User Stats & XP Bar (shown in dashboard view) */}
-            {currentView === 'dashboard' && (
-              <StatsHeader
+            {/* 1. New Home View */}
+            {currentView === 'home' && (
+              <HomePage
                 progress={progress}
-                onOpenMistakesReview={() => setIsMistakesModalOpen(true)}
-              />
-            )}
-
-            {/* Dashboard View: World Map of Units & Missions */}
-            {currentView === 'dashboard' && (
-              <WorldMap
-                progress={progress}
+                onNavigate={(v) => {
+                  setActiveGameId(null);
+                  setCurrentView(v);
+                }}
                 onPlayGame={handlePlayGame}
-                onOpenNotes={handleOpenNotes}
-                onOpenLabArena={() => setCurrentView('lab')}
               />
             )}
 
-            {/* CS107ES Lab Arena View */}
+            {/* 2. Syllabus World View (Relocated complete existing syllabus-world experience) */}
+            {currentView === 'syllabus' && (
+              <>
+                <StatsHeader
+                  progress={progress}
+                  onOpenMistakesReview={() => setIsMistakesModalOpen(true)}
+                />
+                <WorldMap
+                  progress={progress}
+                  onPlayGame={handlePlayGame}
+                  onOpenNotes={handleOpenNotes}
+                  onOpenLabArena={() => setCurrentView('lab')}
+                />
+              </>
+            )}
+
+            {/* 3. CS107ES Lab Arena View */}
             {currentView === 'lab' && (
               <LabPracticeArena
                 onOpenNotes={handleOpenNotes}
               />
             )}
 
-            {/* Revision Notes Library View */}
+            {/* 4. Revision Notes Library View */}
             {currentView === 'notes' && (
               <NotesLibrary
                 onOpenNoteModal={handleOpenNotes}
@@ -260,7 +288,7 @@ export const App: React.FC = () => {
               />
             )}
 
-            {/* JNTUH R25 Coverage Matrix View */}
+            {/* 5. JNTUH R25 Coverage Matrix View */}
             {currentView === 'coverage' && (
               <CoverageMatrix
                 onPlayGame={handlePlayGame}
@@ -273,13 +301,9 @@ export const App: React.FC = () => {
 
       {/* Footer */}
       <Footer
-        onOpenCoverage={() => {
+        onNavigate={(v) => {
           setActiveGameId(null);
-          setCurrentView('coverage');
-        }}
-        onOpenNotesLibrary={() => {
-          setActiveGameId(null);
-          setCurrentView('notes');
+          setCurrentView(v);
         }}
       />
 

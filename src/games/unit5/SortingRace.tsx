@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { GameContainer } from '../shared/GameContainer';
 import { GAMES_REGISTRY } from '../../data/gamesRegistry';
 import { PlayerGameResult } from '../../types/games';
 import { soundManager } from '../../utils/sound';
-import { Flag, Play, RotateCcw, Check, X, ArrowRight, Zap, Trophy } from 'lucide-react';
+import { Flag, Play, Pause, RotateCcw, Check, X, ArrowRight, Zap, Trophy, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface SortingRaceProps {
   onComplete: (result: PlayerGameResult) => void;
@@ -20,6 +20,76 @@ interface SortRaceChallenge {
   correctIndex: number;
   explanation: string;
 }
+
+interface SortStep {
+  array: number[];
+  activeIndices: [number, number] | null;
+  isSwap: boolean;
+  comparisons: number;
+  swaps: number;
+  message: string;
+}
+
+const INITIAL_BARS = [45, 12, 89, 34, 70, 23];
+
+function generateBubbleSortSteps(initial: number[]): SortStep[] {
+  const steps: SortStep[] = [];
+  const arr = [...initial];
+  let comps = 0;
+  let swps = 0;
+
+  steps.push({
+    array: [...arr],
+    activeIndices: null,
+    isSwap: false,
+    comparisons: 0,
+    swaps: 0,
+    message: 'Initial unsorted state. Ready to begin Bubble Sort.'
+  });
+
+  for (let i = 0; i < arr.length - 1; i++) {
+    for (let j = 0; j < arr.length - 1 - i; j++) {
+      comps++;
+      const willSwap = arr[j] > arr[j + 1];
+      steps.push({
+        array: [...arr],
+        activeIndices: [j, j + 1],
+        isSwap: false,
+        comparisons: comps,
+        swaps: swps,
+        message: `Pass ${i + 1}: Compare arr[${j}] (${arr[j]}) with arr[${j + 1}] (${arr[j + 1]}). ${willSwap ? 'Inverted! Swapping...' : 'In order (no swap).'}`
+      });
+
+      if (willSwap) {
+        const temp = arr[j];
+        arr[j] = arr[j + 1];
+        arr[j + 1] = temp;
+        swps++;
+        steps.push({
+          array: [...arr],
+          activeIndices: [j, j + 1],
+          isSwap: true,
+          comparisons: comps,
+          swaps: swps,
+          message: `Swapped: [${arr[j]}, ${arr[j + 1]}] placed into positions [${j}, ${j + 1}].`
+        });
+      }
+    }
+  }
+
+  steps.push({
+    array: [...arr],
+    activeIndices: null,
+    isSwap: false,
+    comparisons: comps,
+    swaps: swps,
+    message: 'Bubble Sort complete! All elements in ascending order.'
+  });
+
+  return steps;
+}
+
+const SORT_STEPS = generateBubbleSortSteps(INITIAL_BARS);
 
 const CHALLENGES: SortRaceChallenge[] = [
   {
@@ -80,44 +150,58 @@ export const SortingRace: React.FC<SortingRaceProps> = ({
   const [startTime] = useState<number>(Date.now());
 
   // Interactive sorting visualizer state
-  const [bars, setBars] = useState<number[]>([45, 12, 89, 34, 70, 23]);
-  const [activeIndices, setActiveIndices] = useState<[number, number] | null>(null);
-  const [sortStats, setSortStats] = useState({ comparisons: 0, swaps: 0 });
-  const [isSorting, setIsSorting] = useState(false);
+  const [currentStepIdx, setCurrentStepIdx] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const currentSortStep = SORT_STEPS[currentStepIdx] || SORT_STEPS[0];
+  const bars = currentSortStep.array;
+  const activeIndices = currentSortStep.activeIndices;
+  const sortStats = { comparisons: currentSortStep.comparisons, swaps: currentSortStep.swaps };
+
+  useEffect(() => {
+    if (isPlaying) {
+      timerRef.current = setTimeout(() => {
+        if (currentStepIdx < SORT_STEPS.length - 1) {
+          setCurrentStepIdx(prev => prev + 1);
+          soundManager.playClick();
+        } else {
+          setIsPlaying(false);
+          soundManager.playVictory();
+        }
+      }, 350);
+    } else if (timerRef.current) {
+      clearTimeout(timerRef.current);
+    }
+
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, [isPlaying, currentStepIdx]);
+
+  const handleStepForward = () => {
+    soundManager.playClick();
+    setIsPlaying(false);
+    if (currentStepIdx < SORT_STEPS.length - 1) {
+      setCurrentStepIdx(prev => prev + 1);
+    }
+  };
+
+  const handleStepBackward = () => {
+    soundManager.playClick();
+    setIsPlaying(false);
+    if (currentStepIdx > 0) {
+      setCurrentStepIdx(prev => prev - 1);
+    }
+  };
+
+  const handleResetSort = () => {
+    soundManager.playClick();
+    setIsPlaying(false);
+    setCurrentStepIdx(0);
+  };
 
   const ch = CHALLENGES[currentIdx];
-
-  const runBubbleStep = async () => {
-    if (isSorting) return;
-    setIsSorting(true);
-    soundManager.playClick();
-    const arr = [...bars];
-    let comps = 0;
-    let swps = 0;
-
-    for (let i = 0; i < arr.length - 1; i++) {
-      for (let j = 0; j < arr.length - 1 - i; j++) {
-        setActiveIndices([j, j + 1]);
-        comps++;
-        setSortStats({ comparisons: comps, swaps: swps });
-        await new Promise(r => setTimeout(r, 250));
-
-        if (arr[j] > arr[j + 1]) {
-          const temp = arr[j];
-          arr[j] = arr[j + 1];
-          arr[j + 1] = temp;
-          swps++;
-          setBars([...arr]);
-          setSortStats({ comparisons: comps, swaps: swps });
-          soundManager.playClick();
-          await new Promise(r => setTimeout(r, 250));
-        }
-      }
-    }
-    setActiveIndices(null);
-    setIsSorting(false);
-    soundManager.playVictory();
-  };
 
   const handleSelect = (idx: number) => {
     if (isAnswered) return;
@@ -182,8 +266,7 @@ export const SortingRace: React.FC<SortingRaceProps> = ({
         setSelectedOpt(null);
         setIsAnswered(false);
         setScore(0);
-        setBars([45, 12, 89, 34, 70, 23]);
-        setSortStats({ comparisons: 0, swaps: 0 });
+        handleResetSort();
         setMistakes([]);
       }}
     >
@@ -200,12 +283,22 @@ export const SortingRace: React.FC<SortingRaceProps> = ({
           <div className="flex items-center justify-between flex-wrap gap-2 text-xs font-mono">
             <div className="flex items-center gap-2 text-slate-400">
               <Flag className="w-4 h-4 text-rose-400" />
-              <span>Real-Time Algorithm Race Simulator</span>
+              <span>Real-Time Algorithm Race Simulator (Step {currentStepIdx + 1} / {SORT_STEPS.length})</span>
             </div>
             <div className="flex items-center gap-3 text-slate-300">
               <span>Comparisons: <strong className="text-cyan-400">{sortStats.comparisons}</strong></span>
               <span>Swaps: <strong className="text-amber-400">{sortStats.swaps}</strong></span>
             </div>
+          </div>
+
+          {/* Real-time Step Description Annotation */}
+          <div className="px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-800 text-xs font-mono text-slate-300 flex items-center justify-between gap-2">
+            <span className="text-cyan-300">{currentSortStep.message}</span>
+            {currentSortStep.isSwap && (
+              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-950 border border-amber-600 text-amber-300 shrink-0">
+                SWAP
+              </span>
+            )}
           </div>
 
           {/* Bar Visualizer */}
@@ -218,7 +311,9 @@ export const SortingRace: React.FC<SortingRaceProps> = ({
                   <div 
                     className={`w-full rounded-t-lg transition-all duration-200 ${
                       isComparing 
-                        ? 'bg-rose-500 shadow-lg shadow-rose-500/50' 
+                        ? currentSortStep.isSwap
+                          ? 'bg-amber-500 shadow-lg shadow-amber-500/50 scale-105'
+                          : 'bg-rose-500 shadow-lg shadow-rose-500/50'
                         : 'bg-cyan-600/80 hover:bg-cyan-500'
                     }`}
                     style={{ height: `${val * 1.3}px` }}
@@ -229,15 +324,54 @@ export const SortingRace: React.FC<SortingRaceProps> = ({
             })}
           </div>
 
-          <div className="flex justify-end gap-2">
-            <button
-              disabled={isSorting}
-              onClick={runBubbleStep}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 disabled:opacity-40 text-white font-bold text-xs transition-colors shadow-md"
-            >
-              <Play className="w-3.5 h-3.5 fill-white" />
-              <span>{isSorting ? 'Simulating...' : 'Simulate Live Bubble Sort'}</span>
-            </button>
+          {/* Playback & Manual Stepping Controls */}
+          <div className="flex items-center justify-between flex-wrap gap-2 pt-1">
+            <div className="text-[11px] font-mono text-slate-500">
+              Interactive controls: step forward, pause, and replay execution
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                disabled={currentStepIdx === 0}
+                onClick={handleStepBackward}
+                className="p-2 rounded-xl bg-slate-900 border border-slate-700 disabled:opacity-30 text-slate-300 hover:text-white transition-colors"
+                title="Previous comparison step"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  soundManager.playClick();
+                  setIsPlaying(!isPlaying);
+                }}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs transition-colors shadow-md"
+              >
+                {isPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5 fill-white" />}
+                <span>{isPlaying ? 'Pause' : 'Simulate Race'}</span>
+              </button>
+
+              <button
+                type="button"
+                disabled={currentStepIdx === SORT_STEPS.length - 1}
+                onClick={handleStepForward}
+                className="p-2 rounded-xl bg-slate-900 border border-slate-700 disabled:opacity-30 text-slate-300 hover:text-white transition-colors"
+                title="Next comparison/swap step"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+
+              <button
+                type="button"
+                onClick={handleResetSort}
+                className="p-2 rounded-xl bg-slate-900 border border-slate-700 text-slate-400 hover:text-white transition-colors"
+                title="Reset to initial state"
+              >
+                <RotateCcw className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         </div>
 

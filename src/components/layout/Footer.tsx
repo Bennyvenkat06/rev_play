@@ -1,21 +1,18 @@
 import React from 'react';
 import { OFFICIAL_SYLLABUS_SOURCE } from '../../data/syllabusData';
-import { ShieldCheck, BookOpen, ExternalLink, Gamepad2 } from 'lucide-react';
+import { ShieldCheck, BookOpen, ExternalLink, Gamepad2, Home, Compass, FlaskConical, FileText } from 'lucide-react';
+import { NavViewMode } from './Navbar';
 
 interface FooterProps {
-  onOpenCoverage: () => void;
-  onOpenNotesLibrary: () => void;
+  onNavigate: (view: NavViewMode) => void;
 }
 
-export const Footer: React.FC<FooterProps> = ({
-  onOpenCoverage,
-  onOpenNotesLibrary
-}) => {
+export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
   return (
     <footer className="mt-16 bg-slate-950 border-t border-slate-900 py-12 px-4 sm:px-6 lg:px-8 text-xs text-slate-500">
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-start justify-between gap-8">
         <div className="max-w-md space-y-2">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 cursor-pointer" onClick={() => onNavigate('home')}>
             <div className="w-6 h-6 rounded-lg bg-cyan-600 flex items-center justify-center text-slate-950 font-bold">
               <Gamepad2 className="w-3.5 h-3.5" />
             </div>
@@ -34,18 +31,42 @@ export const Footer: React.FC<FooterProps> = ({
 
         <div className="flex flex-wrap gap-8">
           <div>
-            <div className="text-xs font-bold uppercase text-slate-300 font-mono mb-2">Curriculum</div>
+            <div className="text-xs font-bold uppercase text-slate-300 font-mono mb-2">Navigation</div>
             <ul className="space-y-1.5 text-slate-400">
               <li>
-                <button onClick={onOpenCoverage} className="hover:text-cyan-400 transition-colors flex items-center gap-1">
-                  <ShieldCheck className="w-3.5 h-3.5" />
-                  <span>Coverage Matrix</span>
+                <button onClick={() => onNavigate('home')} className="hover:text-cyan-400 transition-colors flex items-center gap-1.5">
+                  <Home className="w-3.5 h-3.5 text-cyan-400" />
+                  <span>Home</span>
                 </button>
               </li>
               <li>
-                <button onClick={onOpenNotesLibrary} className="hover:text-cyan-400 transition-colors flex items-center gap-1">
-                  <BookOpen className="w-3.5 h-3.5" />
-                  <span>Revision Notes (.txt)</span>
+                <button onClick={() => onNavigate('syllabus')} className="hover:text-cyan-400 transition-colors flex items-center gap-1.5">
+                  <Compass className="w-3.5 h-3.5 text-cyan-400" />
+                  <span>Syllabus World (5 Units)</span>
+                </button>
+              </li>
+              <li>
+                <button onClick={() => onNavigate('lab')} className="hover:text-cyan-400 transition-colors flex items-center gap-1.5">
+                  <FlaskConical className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>CS107ES Lab Arena</span>
+                </button>
+              </li>
+            </ul>
+          </div>
+
+          <div>
+            <div className="text-xs font-bold uppercase text-slate-300 font-mono mb-2">Study & Revision</div>
+            <ul className="space-y-1.5 text-slate-400">
+              <li>
+                <button onClick={() => onNavigate('notes')} className="hover:text-cyan-400 transition-colors flex items-center gap-1.5">
+                  <BookOpen className="w-3.5 h-3.5 text-purple-400" />
+                  <span>Revision Notes (Word .docx & .txt)</span>
+                </button>
+              </li>
+              <li>
+                <button onClick={() => onNavigate('coverage')} className="hover:text-cyan-400 transition-colors flex items-center gap-1.5">
+                  <ShieldCheck className="w-3.5 h-3.5 text-cyan-400" />
+                  <span>Coverage Matrix</span>
                 </button>
               </li>
             </ul>
@@ -74,8 +95,8 @@ export const Footer: React.FC<FooterProps> = ({
       </div>
 
       <div className="max-w-7xl mx-auto mt-8 pt-6 border-t border-slate-900 flex flex-wrap items-center justify-between gap-4 text-[11px] text-slate-600">
-        <span>© {new Date().getFullYear()} RevPlay Platform. Your Syllabus. Reimagined as a Game.</span>
-        <span>Local plain-text download enabled. Zero external network prerequisites.</span>
+        <span>© {new Date().getFullYear()} RevPlay Platform. Think in Code. Play the Logic.</span>
+        <span>Local Microsoft Word (.docx) & Plain-Text (.txt) export enabled. Zero network dependencies.</span>
       </div>
     </footer>
   );

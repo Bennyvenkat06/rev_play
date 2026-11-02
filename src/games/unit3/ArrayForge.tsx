@@ -171,18 +171,23 @@ export const ArrayForge: React.FC<ArrayForgeProps> = ({
         </div>
 
         {/* Visual Array Cells */}
-        <div className="bg-slate-950 p-5 rounded-2xl border border-slate-800">
-          <div className="text-xs font-mono text-slate-400 uppercase tracking-wider mb-3">
-            Hardware Contiguous Blocks (Base: {ch.baseAddress})
+        <div className="bg-slate-950 p-5 rounded-2xl border border-slate-800 space-y-3">
+          <div className="flex items-center justify-between flex-wrap gap-2 text-xs font-mono">
+            <span className="text-slate-400 uppercase tracking-wider">
+              Illustrative Contiguous Memory Blocks (Base Address: {ch.baseAddress})
+            </span>
+            <span className="text-[11px] text-slate-500 font-mono">
+              Element Size: {ch.elementSize} Bytes (sizeof(int))
+            </span>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
             {ch.elements.map((val, idx) => {
               const cellAddr = ch.baseAddress + idx * ch.elementSize;
               return (
-                <div key={idx} className="bg-slate-900 border border-slate-800 p-3 rounded-xl text-center">
+                <div key={idx} className="bg-slate-900 border border-slate-800 p-3 rounded-xl text-center hover:border-purple-500/50 transition-colors">
                   <div className="text-[10px] font-mono text-cyan-400">Byte {cellAddr}</div>
                   <div className="text-lg font-black font-mono text-white my-1">{val}</div>
-                  <div className="text-[11px] font-mono text-slate-500">[{idx}]</div>
+                  <div className="text-[11px] font-mono text-purple-300 font-semibold">[{idx}]</div>
                 </div>
               );
             })}

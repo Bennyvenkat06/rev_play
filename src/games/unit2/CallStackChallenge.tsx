@@ -3,7 +3,7 @@ import { GameContainer } from '../shared/GameContainer';
 import { GAMES_REGISTRY } from '../../data/gamesRegistry';
 import { PlayerGameResult } from '../../types/games';
 import { soundManager } from '../../utils/sound';
-import { Layers, Check, X, ArrowRight, HelpCircle, Layers3 } from 'lucide-react';
+import { Layers, Check, X, ArrowRight, HelpCircle, Layers3, ChevronLeft, ChevronRight, RotateCcw, ArrowDown, ArrowUp } from 'lucide-react';
 
 interface CallStackChallengeProps {
   onComplete: (result: PlayerGameResult) => void;
@@ -117,8 +117,10 @@ export const CallStackChallenge: React.FC<CallStackChallengeProps> = ({
   const [score, setScore] = useState(0);
   const [mistakes, setMistakes] = useState<PlayerGameResult['mistakes']>([]);
   const [startTime] = useState<number>(Date.now());
+  const [historyStepIdx, setHistoryStepIdx] = useState(0);
 
   const currentMission = MISSIONS[currentIdx];
+  const activeHistoryEntry = currentMission.framesHistory[historyStepIdx] || currentMission.framesHistory[0];
 
   const handleSelectOption = (idx: number) => {
     if (isAnswered) return;
@@ -148,6 +150,7 @@ export const CallStackChallenge: React.FC<CallStackChallengeProps> = ({
     soundManager.playClick();
     if (currentIdx + 1 < MISSIONS.length) {
       setCurrentIdx(prev => prev + 1);
+      setHistoryStepIdx(0);
       setSelectedOpt(null);
       setIsAnswered(false);
     } else {
@@ -180,6 +183,7 @@ export const CallStackChallenge: React.FC<CallStackChallengeProps> = ({
       onExit={onExit}
       onRestart={() => {
         setCurrentIdx(0);
+        setHistoryStepIdx(0);
         setSelectedOpt(null);
         setIsAnswered(false);
         setScore(0);
@@ -197,41 +201,102 @@ export const CallStackChallenge: React.FC<CallStackChallengeProps> = ({
         {/* Visual Call Stack Architecture */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-5">
           {/* Source Code (6 cols) */}
-          <div className="md:col-span-6 bg-slate-950 rounded-xl border border-slate-800 overflow-hidden">
-            <div className="px-4 py-2 bg-slate-900 border-b border-slate-800 text-xs font-mono text-slate-400">
-              C Source Code
+          <div className="md:col-span-6 bg-slate-950 rounded-xl border border-slate-800 overflow-hidden flex flex-col justify-between">
+            <div>
+              <div className="px-4 py-2 bg-slate-900 border-b border-slate-800 text-xs font-mono text-slate-400">
+                C Source Code
+              </div>
+              <pre className="p-4 text-xs font-mono text-cyan-300 leading-relaxed overflow-x-auto">
+                <code>{currentMission.codeSnippet}</code>
+              </pre>
             </div>
-            <pre className="p-4 text-xs font-mono text-cyan-300 leading-relaxed overflow-x-auto">
-              <code>{currentMission.codeSnippet}</code>
-            </pre>
+            <div className="p-3 bg-slate-900/60 border-t border-slate-800/80 text-[11px] font-mono text-slate-400">
+              Note: Call stack frames allocate local variables and track return addresses.
+            </div>
           </div>
 
           {/* Active Call Stack Visualization (6 cols) */}
           <div className="md:col-span-6 bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-3">
-            <div className="flex items-center gap-2 text-xs font-mono text-emerald-400 uppercase tracking-wider">
-              <Layers3 className="w-4 h-4" />
-              <span>Call Stack Memory View (Top = Active Frame)</span>
+            <div className="flex items-center justify-between text-xs font-mono">
+              <div className="flex items-center gap-1.5 text-emerald-400 uppercase tracking-wider">
+                <Layers3 className="w-4 h-4" />
+                <span>Call Stack (Step {historyStepIdx + 1}/{currentMission.framesHistory.length})</span>
+              </div>
+              <span className="text-[10px] text-slate-500 font-mono">Top = Active Execution Frame</span>
             </div>
 
+            {/* Current Stack Action Annotation */}
+            <div className="px-3 py-2 rounded-lg bg-slate-900 border border-slate-800 text-xs font-mono text-cyan-300 flex items-center gap-2">
+              <span className="font-bold text-amber-400">▶</span>
+              <span>{activeHistoryEntry.action}</span>
+            </div>
+
+            {/* Stack Frames (Top = index 0) */}
             <div className="space-y-2">
-              {currentMission.framesHistory[currentMission.framesHistory.length - 1].frames.map((frame, fIdx) => (
+              {activeHistoryEntry.frames.map((frame, fIdx) => (
                 <div 
                   key={fIdx}
-                  className={`p-3 rounded-xl border text-xs font-mono ${
+                  className={`p-3 rounded-xl border text-xs font-mono transition-all duration-300 ${
                     fIdx === 0
-                      ? 'bg-emerald-950/80 border-emerald-500 text-emerald-200 glow-neon'
-                      : 'bg-slate-900 border-slate-800 text-slate-300'
+                      ? 'bg-emerald-950/80 border-emerald-500 text-emerald-200 glow-neon shadow-md scale-[1.01]'
+                      : 'bg-slate-900/90 border-slate-800 text-slate-300'
                   }`}
                 >
                   <div className="flex items-center justify-between font-bold mb-1">
-                    <span>{frame.funcName}</span>
-                    <span className="text-[10px] text-slate-500">Return to: {frame.returnTo}</span>
+                    <span className="flex items-center gap-1.5">
+                      {fIdx === 0 && <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />}
+                      {frame.funcName}
+                    </span>
+                    <span className="text-[10px] text-slate-400">Return to: {frame.returnTo}</span>
                   </div>
-                  <div className="text-[11px] text-slate-400">
-                    Locals: {Object.entries(frame.scopeVariables).map(([k, v]) => `${k}=${v}`).join(', ')}
+                  <div className="text-[11px] text-slate-400 bg-slate-950/60 p-1.5 rounded border border-slate-800/60 mt-1.5">
+                    Frame Locals: <strong className="text-emerald-300">{Object.entries(frame.scopeVariables).map(([k, v]) => `${k}=${v}`).join(', ')}</strong>
                   </div>
                 </div>
               ))}
+            </div>
+
+            {/* Stepping controls for Call Stack History */}
+            <div className="flex items-center justify-between pt-2 border-t border-slate-800 text-xs font-mono">
+              <span className="text-[11px] text-slate-500">Inspect stack push & pop:</span>
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  disabled={historyStepIdx === 0}
+                  onClick={() => {
+                    soundManager.playClick();
+                    setHistoryStepIdx(prev => Math.max(0, prev - 1));
+                  }}
+                  className="p-1.5 rounded-lg bg-slate-900 border border-slate-700 disabled:opacity-30 text-slate-300 hover:text-white"
+                  title="Previous stack state"
+                >
+                  <ChevronLeft className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  type="button"
+                  disabled={historyStepIdx === currentMission.framesHistory.length - 1}
+                  onClick={() => {
+                    soundManager.playClick();
+                    setHistoryStepIdx(prev => Math.min(currentMission.framesHistory.length - 1, prev + 1));
+                  }}
+                  className="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-700 disabled:opacity-30 text-cyan-300 hover:text-white flex items-center gap-1"
+                  title="Next stack state (Push/Pop)"
+                >
+                  <span>Step</span>
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    soundManager.playClick();
+                    setHistoryStepIdx(0);
+                  }}
+                  className="p-1.5 rounded-lg bg-slate-900 border border-slate-700 text-slate-400 hover:text-white"
+                  title="Reset to step 1"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                </button>
+              </div>
             </div>
           </div>
         </div>

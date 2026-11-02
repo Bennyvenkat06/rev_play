@@ -3,6 +3,31 @@ import { PlayerGameResult } from '../types/games';
 import { UnitId } from '../types/syllabus';
 
 const STORAGE_KEY = 'revplay_v1_user_progress';
+const INTRO_FLAG_KEY = 'revplay_intro_seen';
+
+export function hasSeenIntro(): boolean {
+  try {
+    return localStorage.getItem(INTRO_FLAG_KEY) === 'true';
+  } catch (err) {
+    return false;
+  }
+}
+
+export function markIntroSeen(): void {
+  try {
+    localStorage.setItem(INTRO_FLAG_KEY, 'true');
+  } catch (err) {
+    console.error('Failed to save intro state:', err);
+  }
+}
+
+export function resetIntroSeen(): void {
+  try {
+    localStorage.removeItem(INTRO_FLAG_KEY);
+  } catch (err) {
+    console.error('Failed to reset intro state:', err);
+  }
+}
 
 const DEFAULT_PROGRESS: UserProgress = {
   totalXp: 0,

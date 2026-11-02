@@ -183,31 +183,59 @@ export const PointerLab: React.FC<PointerLabProps> = ({
         </div>
 
         {/* Visual RAM Grid Display */}
-        <div className="bg-slate-950 p-5 rounded-2xl border border-slate-800">
-          <div className="flex items-center gap-2 text-xs font-mono text-slate-400 uppercase tracking-wider mb-3">
-            <Database className="w-4 h-4 text-emerald-400" />
-            <span>Hardware Memory Bus (32-bit Architecture)</span>
+        <div className="bg-slate-950 p-5 rounded-2xl border border-slate-800 space-y-3">
+          <div className="flex items-center justify-between flex-wrap gap-2 text-xs font-mono">
+            <div className="flex items-center gap-2 text-slate-400 uppercase tracking-wider">
+              <Database className="w-4 h-4 text-emerald-400" />
+              <span>Illustrative RAM Memory Model (32-bit Simulated)</span>
+            </div>
+            <span className="text-[11px] text-slate-500 font-mono">
+              Conceptual byte addresses & pointer links
+            </span>
           </div>
+
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             {currentQ.memory.map((cell) => {
               const isTarget = cell.address === currentQ.targetAddress;
+              const isPointer = cell.type.includes('*');
+              const pointsToVar = currentQ.memory.find(m => m.address === cell.value);
+
               return (
                 <div 
                   key={cell.address}
-                  className={`p-3.5 rounded-xl border transition-all ${
+                  className={`p-3.5 rounded-xl border transition-all duration-300 relative overflow-hidden ${
                     isTarget 
-                      ? 'bg-emerald-950/70 border-emerald-500 shadow-md glow-neon' 
+                      ? 'bg-emerald-950/70 border-emerald-500 shadow-lg glow-neon scale-[1.02]' 
+                      : isPointer
+                      ? 'bg-indigo-950/50 border-indigo-500/70 shadow-md'
                       : 'bg-slate-900 border-slate-800'
                   }`}
                 >
                   <div className="flex items-center justify-between text-[11px] font-mono text-slate-400 mb-1">
                     <span className="text-cyan-400 font-bold">{cell.address}</span>
-                    <span className="text-slate-500">{cell.type}</span>
+                    <span className="text-slate-500 font-semibold">{cell.type}</span>
                   </div>
-                  <div className="text-sm font-bold text-white font-mono">{cell.varName}</div>
-                  <div className="text-xs text-emerald-300 font-mono mt-1">
-                    Value: <strong>{String(cell.value)}</strong>
+
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-bold text-white font-mono">{cell.varName}</span>
+                    {isTarget && (
+                      <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-emerald-900/80 text-emerald-300 border border-emerald-600 animate-pulse">
+                        Target & Dereference
+                      </span>
+                    )}
                   </div>
+
+                  <div className="text-xs text-emerald-300 font-mono mt-2">
+                    Value: <strong className="text-white text-sm">{String(cell.value)}</strong>
+                  </div>
+
+                  {/* Visual Pointer Connection Indicator */}
+                  {isPointer && pointsToVar && (
+                    <div className="mt-2.5 pt-2 border-t border-indigo-800/60 text-[10px] font-mono text-indigo-300 flex items-center gap-1.5 animate-pulse">
+                      <ArrowRight className="w-3 h-3 text-cyan-400" />
+                      <span>Points to: <strong>&{pointsToVar.varName}</strong> ({pointsToVar.address})</span>
+                    </div>
+                  )}
                 </div>
               );
             })}
