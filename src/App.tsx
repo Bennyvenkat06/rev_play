@@ -37,7 +37,7 @@ import { FileDetective } from './games/unit5/FileDetective';
 
 // Data & Utils
 import { REVISION_NOTES_DATABASE } from './data/revisionNotesData';
-import { loadUserProgress, recordGameCompletion, saveUserProgress, hasSeenIntro, markIntroSeen } from './utils/storage';
+import { loadUserProgress, recordGameCompletion, saveUserProgress } from './utils/storage';
 import { soundManager } from './utils/sound';
 import { UserProgress } from './types/progress';
 import { PlayerGameResult } from './types/games';
@@ -48,9 +48,8 @@ export const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<NavViewMode>('home');
   const [activeGameId, setActiveGameId] = useState<string | null>(null);
 
-  // Check if developer/tester requested intro preview via URL query parameter (?introPreview=1)
-  const isIntroPreview = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('introPreview') === '1';
-  const [showIntro, setShowIntro] = useState<boolean>(() => isIntroPreview || !hasSeenIntro());
+  // Always play the cinematic intro on every full application load and browser refresh
+  const [showIntro, setShowIntro] = useState<boolean>(true);
 
   // Modals state
   const [activeNote, setActiveNote] = useState<RevisionNote | null>(null);
@@ -132,11 +131,8 @@ export const App: React.FC = () => {
   };
 
   const handleIntroComplete = useCallback(() => {
-    if (!isIntroPreview) {
-      markIntroSeen();
-    }
     setShowIntro(false);
-  }, [isIntroPreview]);
+  }, []);
 
   const handleReturnToUnit = () => {
     setIsResultsModalOpen(false);

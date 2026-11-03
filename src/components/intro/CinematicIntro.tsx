@@ -14,10 +14,17 @@ interface CinematicIntroProps {
   onComplete: () => void;
 }
 
-const TOTAL_DURATION = 4200; // ms: Master timeline authoritative duration
+const STANDARD_DURATION = 4200; // ms: Master timeline authoritative duration
+const REDUCED_MOTION_DURATION = 1200; // ms: Fast accessible static presentation
 
 export const CinematicIntro: React.FC<CinematicIntroProps> = ({ onComplete }) => {
-  const [currentScene, setCurrentScene] = useState<1 | 2 | 3 | 4 | 5>(1);
+  // Check reduced motion preference
+  const prefersReducedMotion = typeof window !== 'undefined' && 
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const totalDuration = prefersReducedMotion ? REDUCED_MOTION_DURATION : STANDARD_DURATION;
+
+  const [currentScene, setCurrentScene] = useState<1 | 2 | 3 | 4 | 5>(() => prefersReducedMotion ? 5 : 1);
   const [progress, setProgress] = useState<number>(0); // Strictly 0 at mount
   const [isFadingOut, setIsFadingOut] = useState<boolean>(false);
 
@@ -60,7 +67,7 @@ export const CinematicIntro: React.FC<CinematicIntroProps> = ({ onComplete }) =>
       if (!isFinishedRef.current) {
         finishIntro();
       }
-    }, TOTAL_DURATION + 1000);
+    }, totalDuration + 1000);
 
     const tick = (now: number) => {
       if (isFinishedRef.current) return;
@@ -71,28 +78,33 @@ export const CinematicIntro: React.FC<CinematicIntroProps> = ({ onComplete }) =>
       }
 
       const elapsed = now - startTimestampRef.current;
-      const clampedProgress = Math.min(1, Math.max(0, elapsed / TOTAL_DURATION));
+      const clampedProgress = Math.min(1, Math.max(0, elapsed / totalDuration));
       setProgress(clampedProgress);
 
-      // Fixed master scene boundaries:
-      // Awakening:     0 ms –  750 ms
-      // Memory:      750 ms – 1550 ms
-      // Logic:      1550 ms – 2450 ms
-      // Identity:   2450 ms – 3250 ms
-      // Final reveal: 3250 ms – 4200 ms
-      if (elapsed < 750) {
-        setCurrentScene(1);
-      } else if (elapsed < 1550) {
-        setCurrentScene(2);
-      } else if (elapsed < 2450) {
-        setCurrentScene(3);
-      } else if (elapsed < 3250) {
-        setCurrentScene(4);
-      } else {
+      if (prefersReducedMotion) {
+        // Fast static presentation of RevPlay Identity
         setCurrentScene(5);
+      } else {
+        // Fixed master scene boundaries:
+        // Awakening:     0 ms –  750 ms
+        // Memory:      750 ms – 1550 ms
+        // Logic:      1550 ms – 2450 ms
+        // Identity:   2450 ms – 3250 ms
+        // Final reveal: 3250 ms – 4200 ms
+        if (elapsed < 750) {
+          setCurrentScene(1);
+        } else if (elapsed < 1550) {
+          setCurrentScene(2);
+        } else if (elapsed < 2450) {
+          setCurrentScene(3);
+        } else if (elapsed < 3250) {
+          setCurrentScene(4);
+        } else {
+          setCurrentScene(5);
+        }
       }
 
-      if (elapsed >= TOTAL_DURATION) {
+      if (elapsed >= totalDuration) {
         clearTimeout(fallbackTimer);
         finishIntro();
       } else {
@@ -109,7 +121,7 @@ export const CinematicIntro: React.FC<CinematicIntroProps> = ({ onComplete }) =>
       }
       clearTimeout(fallbackTimer);
     };
-  }, []);
+  }, [prefersReducedMotion, totalDuration]);
 
   const progressPercent = Math.min(100, Math.round(progress * 100));
 
