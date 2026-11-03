@@ -8,7 +8,15 @@ export const OFFICIAL_SYLLABUS_SOURCE = {
   theoryCourseTitle: 'Programming for Problem Solving',
   labCourseCode: 'CS107ES',
   labCourseTitle: 'Programming for Problem Solving Lab',
-  localNote: 'College local identifiers map directly to these official university course codes.'
+  governanceNote: 'JNTUH R25 officially mandates theory course CS103ES and laboratory course CS107ES. Supplementary practice programmes and algorithmic challenges are curated pedagogical extensions and are not individual university examination mandates.'
+};
+
+export const COLLEGE_LOCAL_COURSE_MAPPING = {
+  institution: 'Affiliated Engineering College / Department of CSE (AI&ML)',
+  localTheoryCourseId: '25CS103ES-LOC',
+  localLabCourseId: '25CS107ES-LOC',
+  autonomousCode: 'AI-ML-103',
+  mappingPolicy: 'College-local internal course identifiers are maintained strictly separate from JNTUH university codes (CS103ES and CS107ES) and map internal laboratory lesson plans to university curriculum standards.'
 };
 
 export const SYLLABUS_UNITS: SyllabusUnit[] = [

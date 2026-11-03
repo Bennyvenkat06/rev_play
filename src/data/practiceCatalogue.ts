@@ -740,3 +740,4 @@ int binarySearch(const int arr[], int n, int key) {
     }
   }
 ];
+

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { COVERAGE_MATRIX, OFFICIAL_SYLLABUS_SOURCE, LAB_PRACTICE_GROUPS } from '../../data/syllabusData';
+import { COVERAGE_MATRIX, OFFICIAL_SYLLABUS_SOURCE, COLLEGE_LOCAL_COURSE_MAPPING, LAB_PRACTICE_GROUPS } from '../../data/syllabusData';
 import { soundManager } from '../../utils/sound';
 import { 
   ShieldCheck, 
@@ -62,7 +62,10 @@ export const CoverageMatrix: React.FC<CoverageMatrixProps> = ({
             </p>
             <div className="mt-3 flex items-center gap-2 text-xs text-slate-400">
               <Info className="w-4 h-4 text-cyan-400 shrink-0" />
-              <span>{OFFICIAL_SYLLABUS_SOURCE.localNote}</span>
+              <span>{OFFICIAL_SYLLABUS_SOURCE.governanceNote}</span>
+            </div>
+            <div className="mt-1 text-[11px] text-slate-500 font-mono">
+              College Mapping: {COLLEGE_LOCAL_COURSE_MAPPING.localTheoryCourseId} (Theory) | {COLLEGE_LOCAL_COURSE_MAPPING.localLabCourseId} (Lab) — {COLLEGE_LOCAL_COURSE_MAPPING.mappingPolicy}
             </div>
           </div>
 

@@ -230,7 +230,8 @@ int main(void) {
       'do-while loop is exit-controlled: the condition is tested AFTER the body. The body is guaranteed to execute AT LEAST ONCE.',
       'for loop packages initialization, test condition, and step increment in a single unified header.',
       'The break statement immediately terminates the innermost enclosing loop.',
-      'The continue statement skips the remainder of the current iteration and jumps directly to the loop update step.'
+      'The continue statement skips the remainder of the current iteration and jumps directly to the loop update step.',
+      'Loop Applications in Number Theory: In Fibonacci generation, supported limits for 32-bit signed int are N <= 45 (F(45)=1,134,903,170; F(46)=1,836,311,903; F(47) overflows). Iterative loops run in O(N) linear time with O(1) space, whereas naive recursion runs in exponential O(2^N) time. In Armstrong number checks, general numbers require computing sum of digits raised to power k (where k is total number of digits); do not market a 3-digit cube sum as a general Armstrong checker.'
     ],
     syntaxAndTerminology: [
       {
@@ -408,7 +409,8 @@ int main(void) {
       'NULL is a macro representing memory address 0; dereferencing a NULL or uninitialized pointer causes a runtime crash (Segmentation Fault).',
       'Pointers provide the fundamental mechanism for simulated call-by-reference in C.',
       'Dynamic memory allocation (malloc/calloc) allocates heap memory at runtime. If heap allocation fails, malloc returns NULL; you MUST verify ptr != NULL before use.',
-      'Every malloc/calloc block must be explicitly deallocated with free(ptr) to prevent persistent memory leaks, and ptr set to NULL to prevent dangling pointers.'
+      'Every malloc/calloc block must be explicitly deallocated with free(ptr) to prevent persistent memory leaks, and ptr set to NULL to prevent dangling pointers.',
+      'SYLLABUS COVERAGE GAP ANALYSIS: JNTUH CS103ES Unit II explicitly teaches dynamic memory management (malloc, calloc, realloc, free). However, the official CS107ES lab experiments omit a dedicated standalone DMA experiment. In RevPlay, this gap is documented under supplemental practice P-U2-03, providing comprehensive coverage of allocation failure checking, heap resizing, and deallocation safety without fabricating a university mandate.'
     ],
     syntaxAndTerminology: [
       {
@@ -859,6 +861,7 @@ int main(void) {
       'Matrix addition requires identical dimensions (R1 == R2 and C1 == C2): C[i][j] = A[i][j] + B[i][j].',
       'Matrix multiplication of A (R1 x C1) and B (R2 x C2) requires C1 == R2. The product matrix has dimensions R1 x C2.',
       'Matrix multiplication uses three nested loops: i (rows of A), j (cols of B), and k (inner product accumulator).',
+      'Matrix Transpose & Dimensional Validation: Transposing an R x C matrix swaps row indices with column indices, producing a C x R matrix (T[j][i] = M[i][j]). Square matrices (R == C) permit in-place transposition by swapping elements across the main diagonal (i < j). Rectangular matrices (R != C) CANNOT be transposed in-place in a static array because row strides change; a separate destination buffer of dimension C x R is mathematically required. Always validate input bounds R > 0 and C > 0.',
       'Parallel arrays use two or more independent arrays of the exact same size, where elements at index i across all arrays describe the attributes of a single logical item (e.g., id[i] and marks[i]).',
       'Enumerated types (enum) allow programmer-defined types whose values are restricted to a discrete list of named integer constants (default starting at 0, incrementing by 1).'
     ],
@@ -1369,9 +1372,10 @@ int main(void) {
     isSupplemental: false,
     objective: 'Contrast struct and union memory footprints, understand shared memory overlap where members share a common base address, and calculate byte sizes.',
     conceptSummary: [
-      'A union is a user-defined type where all members share the SAME memory location.',
-      'The total size of a union is equal to the size of its largest member (plus any alignment padding).',
-      'In contrast, the size of a struct is at least the sum of sizes of all its individual members.',
+      'A union is a user-defined type where all members share the SAME memory location starting at offset 0.',
+      'The total size of a union is equal to the size of its largest member, rounded up to the nearest multiple of the largest member alignment constraint.',
+      'In contrast, the size of a struct is at least the sum of sizes of all its individual members, plus internal and trailing padding bytes inserted by the compiler.',
+      'IMPLEMENTATION-DEPENDENT SIZEOF: Exact sizeof results for structs and unions are implementation-dependent. They are determined by compiler alignment rules, target ABI, and word boundaries (e.g. 32-bit vs 64-bit). For example, a struct containing { char c; int i; } is typically 8 bytes on x86_64 (1 byte char + 3 padding bytes + 4 bytes int) rather than 5 bytes.',
       'Only ONE member of a union can store a meaningful value at any given moment: writing to one member overwrites the values of all other members.',
       'Unions are widely used in embedded systems, hardware register mapping, and memory-constrained protocols.'
     ],
@@ -1890,7 +1894,7 @@ int main(void) {
   'notes-lab-group2': {
     id: 'notes-lab-group2',
     title: 'Lab Practice 2: Expression Evaluation & Number Theory',
-    subtitle: 'CS107ES Lab Group 2 — Switch Calculator, Primes, Palindromes & Fibonacci',
+    subtitle: 'CS107ES Lab Group 2 — Switch Calculator, Primes, Armstrong Numbers & Fibonacci',
     unitId: 'lab',
     unitName: 'CS107ES Programming for Problem Solving Lab',
     courseCode: 'CS107ES',
@@ -1899,65 +1903,110 @@ int main(void) {
     associatedGameTitle: 'Lab Practice Arena',
     officialSyllabusMapping: 'CS107ES Practice Group 2: Expression evaluation (Calculator, Prime, Sum of Digits, Palindrome, Fibonacci).',
     isSupplemental: false,
-    objective: 'Implement switch-case driven calculators, primality checking algorithms, digit reversal for palindrome verification, and Fibonacci sequence generation.',
+    objective: 'Implement switch-case driven integer calculators with divide-by-zero safeguards, primality verification avoiding loop overflow, general vs 3-digit Armstrong checkers, and Fibonacci sequence generation respecting 32-bit capacity limits.',
     conceptSummary: [
-      'Switch-based calculator processes operators (+, -, *, /, %) with explicit divide-by-zero checks before / and % operations.',
-      'Prime checking: a number N > 1 is prime if it has no divisors other than 1 and N. Testing divisors up to sqrt(N) achieves O(sqrt(N)) time.',
-      'Reversing an integer uses: rev = rev * 10 + (n % 10); n = n / 10; A number is a palindrome if original == rev.',
-      'Fibonacci sequence starts with 0 and 1, with each subsequent term being the sum of previous two.'
+      'Switch-based integer calculator processes arithmetic operators (+, -, *, /, %). In C, the % (modulo) operator strictly requires integer operands. Both / and % MUST have explicit zero-divisor checks (if (b == 0)) prior to evaluation to prevent SIGFPE exceptions.',
+      'Prime checking: a number N > 1 is prime if it has no divisors other than 1 and N. Testing divisors up to sqrt(N) achieves O(sqrt(N)) time. When writing the loop bound, NEVER write "i * i <= n" on 32-bit integers because i * i can exceed INT_MAX (2,147,483,647) and cause undefined signed integer overflow. Use "i <= n / i" or precompute "int limit = (int)sqrt(n)". Required headers: <stdio.h>, <stdbool.h>, and <math.h> (with -lm linker flag).',
+      'Armstrong Number Academic Distinction: A 3-digit Armstrong number satisfies 153 = 1^3 + 5^3 + 3^3. A general N-digit Armstrong number satisfies sum of digits raised to the power of total digits k (k = floor(log10 N) + 1). Never describe a three-digit-only sum-of-cubes program as a general Armstrong checker.',
+      'Fibonacci sequence starts with 0 and 1, with each subsequent term being the sum of previous two. Supported input limit for signed 32-bit int is N <= 45 (F(45) = 1,134,903,170; F(46) = 1,836,311,903; F(47) = 2,971,215,073 overflows INT32_MAX). Complexity: Naive recursive fib(n) has O(2^N) exponential time complexity due to redundant recomputations; the iterative loop runs in O(N) linear time and O(1) auxiliary space.'
     ],
     syntaxAndTerminology: [
       {
-        term: 'Modulo Operator (%) in Digit Extraction',
-        definition: 'Extracts rightmost decimal digit.',
-        syntax: 'int lastDigit = num % 10;'
+        term: 'Integer Modulo Operator (%)',
+        definition: 'Yields the remainder of integer division; invalid for floating-point operands in C.',
+        syntax: 'int rem = a % b; // undefined if b == 0'
       },
       {
-        term: 'Divide-by-zero Guard',
+        term: 'Divide-by-zero & Modulo-by-zero Guard',
         definition: 'Mandatory verification before division or modulo.',
-        syntax: 'if (b == 0) { printf("Error: Division by zero!\\n"); }'
+        syntax: 'if (b == 0) { printf("Error: Division/Modulo by zero!\\n"); return 1; }'
+      },
+      {
+        term: 'Overflow-Safe Primality Bound',
+        definition: 'Divisor boundary avoiding integer multiplication overflow.',
+        syntax: 'for (int i = 2; i <= n / i; i++) { if (n % i == 0) return false; }'
+      },
+      {
+        term: 'General Armstrong Power Rule',
+        definition: 'Sum of each digit raised to power of total digit count k.',
+        syntax: 'sum += pow(digit, k); // where k = total number of digits in N'
       }
     ],
     codeExamples: [
       {
-        title: 'Number Palindrome and Digit Sum Verification',
+        title: 'Switch-based Integer Calculator with Safe Division/Modulo Guards',
         code: `#include <stdio.h>
 
 int main(void) {
-    int num = 12321, temp = num;
-    int reversed = 0, sumOfDigits = 0;
+    int a = 20, b = 4;
+    char op = '%';
 
-    while (temp > 0) {
-        int rem = temp % 10;
-        sumOfDigits += rem;
-        reversed = reversed * 10 + rem;
-        temp /= 10;
-    }
-
-    printf("Original: %d | Reversed: %d | Digit Sum: %d\\n", num, reversed, sumOfDigits);
-    if (num == reversed) {
-        printf("%d is a PALINDROME\\n", num);
+    switch (op) {
+        case '+': printf("%d + %d = %d\\n", a, b, a + b); break;
+        case '-': printf("%d - %d = %d\\n", a, b, a - b); break;
+        case '*': printf("%d * %d = %d\\n", a, b, a * b); break;
+        case '/':
+            if (b == 0) printf("Error: Division by zero!\\n");
+            else printf("%d / %d = %d\\n", a, b, a / b);
+            break;
+        case '%':
+            if (b == 0) printf("Error: Modulo by zero!\\n");
+            else printf("%d %% %d = %d\\n", a, b, a % b);
+            break;
+        default: printf("Error: Unsupported operator '%c'\\n", op); break;
     }
     return 0;
 }`,
-        explanation: 'Extracts digits, computes sum, builds reversed number, and verifies palindrome property.'
+        explanation: 'Safely evaluates all five integer operators with mandatory zero checks on both division and modulo.'
+      },
+      {
+        title: 'Overflow-Safe Prime Number Verification',
+        code: `#include <stdio.h>
+#include <stdbool.h>
+#include <math.h>
+
+bool isPrime(int n) {
+    if (n <= 1) return false;
+    if (n <= 3) return true;
+    if (n % 2 == 0 || n % 3 == 0) return false;
+
+    /* Use i <= n / i to prevent i * i integer overflow near INT_MAX */
+    for (int i = 5; i <= n / i; i += 6) {
+        if (n % i == 0 || n % (i + 2) == 0) return false;
+    }
+    return true;
+}`,
+        explanation: 'Includes <stdbool.h> and <math.h>, avoiding (i * i <= n) overflow while running in O(sqrt(N)) time.'
       }
     ],
     commonMistakes: [
       {
-        pitfall: 'Testing primality up to N instead of sqrt(N) or missing edge cases (0, 1, negatives)',
-        badCode: 'for(int i=2; i<n; i++) // Inefficient for large N; misses n<=1 check',
-        fixedCode: 'if (n <= 1) return 0; for(int i=2; i*i<=n; i++) if (n % i == 0) return 0;',
-        consequence: '0 and 1 are incorrectly flagged as prime; massive waste of CPU cycles.'
+        pitfall: 'Writing loop bound as "i * i <= n" for primality check',
+        badCode: 'for (int i = 2; i * i <= n; i++) // BUG: i * i overflows 32-bit int if n is large',
+        fixedCode: 'for (int i = 2; i <= n / i; i++) // Overflow-safe formulation',
+        consequence: 'When i * i exceeds 2,147,483,647, it wraps to negative numbers, producing an infinite loop or undefined behavior.'
+      },
+      {
+        pitfall: 'Applying % operator to float or double operands in C',
+        badCode: 'double a = 5.5, b = 2.0; double rem = a % b; // COMPILE ERROR',
+        fixedCode: 'int rem = (int)a % (int)b; // or use fmod(a, b) from <math.h>',
+        consequence: 'Compilation error: invalid operands to binary % (have "double" and "double").'
+      },
+      {
+        pitfall: 'Calling 3-digit cube sum a general Armstrong checker',
+        badCode: 'int sum = d1*d1*d1 + d2*d2*d2 + d3*d3*d3; // Valid ONLY for 3-digit numbers!',
+        fixedCode: 'int k = countDigits(n); for(d : digits) sum += pow(d, k);',
+        consequence: 'Incorrectly rejects valid 4-digit Armstrong numbers such as 1634 (1^4 + 6^4 + 3^4 + 4^4 = 1634).'
       }
     ],
     quickChecklist: [
-      'Always test for b == 0 before division and modulo in calculators.',
-      'Preserve original number in temp variable before extracting digits.',
-      'Fibonacci base values: F(0) = 0, F(1) = 1.'
+      'Always test for b == 0 before both division (/) and modulo (%).',
+      'For prime check, use i <= n / i and include <stdbool.h> and <math.h>.',
+      'Fibonacci terms for 32-bit int must not exceed N = 45.',
+      'Explain that naive recursive Fibonacci is O(2^N) exponential while iterative loop is O(N) linear.'
     ],
     examTips: [
-      'In lab exams, demonstrate the calculator handling bad operators through default: case.'
+      'In lab exams, demonstrate the calculator handling invalid operators through the switch default: case, and explain the difference between 3-digit vs general N-digit Armstrong numbers.'
     ]
   },
 
@@ -2044,9 +2093,10 @@ int main(void) {
     isSupplemental: false,
     objective: 'Implement persistent file copy programs that convert lowercase characters to uppercase, and merge two separate source files sequentially into a third destination file.',
     conceptSummary: [
-      'File copy: open source in "r" mode, destination in "w" mode; read char with fgetc(), convert with toupper() from <ctype.h>, write with fputc().',
-      'File merge: open file1 ("r"), file2 ("r"), merged ("w"); copy all of file1 to merged, then copy all of file2 to merged.',
-      'Always verify file pointers != NULL and close all opened handles.'
+      'File copy: open source in "r" mode and destination in "w" mode. If fopen() fails on either stream, it returns NULL (e.g. file missing, permission denied, or disk full). Mandatory error check: if (src == NULL || dest == NULL) { perror("Error opening file"); return 1; }',
+      'Safe EOF Handling: fgetc() returns an int, NOT a char. If stored in an unsigned char on architectures where char is unsigned by default, EOF (-1) converts to 255 and cannot equal -1, creating an infinite loop. Always declare "int ch;" when looping to EOF.',
+      'File merge: open file1 ("r"), file2 ("r"), merged ("w"); verify all handles, stream file1 into merged, stream file2 into merged, and close all three handles with fclose().',
+      'Resource Management: Always close every opened stream with fclose(fp) on all code paths to avoid OS file descriptor leaks and flush buffered stream bytes to disk.'
     ],
     syntaxAndTerminology: [
       {
