@@ -4,6 +4,7 @@ import { GameDefinition } from '../../types/games';
 import { GAMES_REGISTRY } from '../../data/gamesRegistry';
 import { SYLLABUS_UNITS } from '../../data/syllabusData';
 import { soundManager } from '../../utils/sound';
+import { NavViewMode } from '../layout/Navbar';
 import { 
   Gamepad2, 
   Sparkles, 
@@ -34,7 +35,7 @@ import {
 
 interface HomePageProps {
   progress: UserProgress;
-  onNavigate: (view: 'home' | 'syllabus' | 'lab' | 'notes' | 'coverage') => void;
+  onNavigate: (view: NavViewMode, subMode?: 'practice' | 'challenge') => void;
   onPlayGame: (gameId: string) => void;
 }
 
@@ -164,16 +165,16 @@ export const HomePage: React.FC<HomePageProps> = ({
             <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
           </button>
 
-          {/* Secondary CTA: Go to Syllabus World */}
+          {/* Secondary CTA: Go to Theory Platform */}
           <button
             onClick={() => {
               soundManager.playClick();
-              onNavigate('syllabus');
+              onNavigate('theory', 'practice');
             }}
             className="w-full sm:w-auto px-7 py-4 rounded-2xl bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80 hover:border-cyan-500/80 text-white font-bold text-xs sm:text-sm uppercase tracking-wider transition-all shadow-lg active:scale-95 flex items-center justify-center gap-2 text-slate-200 hover:text-white"
           >
             <Compass className="w-4 h-4 text-cyan-400" />
-            <span>Explore Syllabus World</span>
+            <span>Explore Theory Platform</span>
           </button>
         </div>
 
@@ -352,6 +353,137 @@ export const HomePage: React.FC<HomePageProps> = ({
       </section>
 
       {/* ================================================================= */}
+      {/* SECTION 2B: THE FOUR ACADEMIC EXPERIENCES */}
+      {/* ================================================================= */}
+      <section className="space-y-8 max-w-6xl mx-auto">
+        <div className="text-center space-y-2">
+          <span className="text-xs font-mono font-bold uppercase tracking-widest text-cyan-400 block">
+            Two Academic Sections • Four Distinct Experiences
+          </span>
+          <h2 className="text-2xl sm:text-4xl font-black text-white font-display">
+            The Four RevPlay Experiences
+          </h2>
+          <p className="text-xs sm:text-sm text-slate-400 max-w-xl mx-auto">
+            RevPlay delivers specialized Practice and Challenge environments for both the Theory (CS103ES) and Laboratory (CS107ES) curricula.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          {/* Card 1: Theory Practice */}
+          <div className="p-6 rounded-3xl bg-slate-900/90 border border-slate-800 hover:border-cyan-500/60 transition-all flex flex-col justify-between space-y-4">
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="px-2.5 py-0.5 rounded text-[10px] font-mono font-bold bg-cyan-950 text-cyan-300 border border-cyan-800">
+                  CS103ES THEORY
+                </span>
+                <span className="text-xs font-mono text-cyan-400 font-bold">PRACTICE MODE</span>
+              </div>
+              <h3 className="text-lg font-bold text-white font-display">
+                Theory Practice & Exploration
+              </h3>
+              <p className="text-xs text-slate-300 leading-relaxed">
+                Navigate 5 units of theoretical foundations with guided concept breakdowns, animated visual memory stepping, and interactive logic challenges.
+              </p>
+            </div>
+            <button
+              onClick={() => {
+                soundManager.playClick();
+                onNavigate('theory', 'practice');
+              }}
+              className="w-full py-3 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-black text-xs uppercase tracking-wider transition-all shadow-md active:scale-95 glow-cyan flex items-center justify-center gap-2"
+            >
+              <Compass className="w-4 h-4" />
+              <span>Enter Theory Practice</span>
+            </button>
+          </div>
+
+          {/* Card 2: Theory Challenge */}
+          <div className="p-6 rounded-3xl bg-slate-900/90 border border-slate-800 hover:border-indigo-500/60 transition-all flex flex-col justify-between space-y-4">
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="px-2.5 py-0.5 rounded text-[10px] font-mono font-bold bg-indigo-950 text-indigo-300 border border-indigo-800">
+                  CS103ES THEORY
+                </span>
+                <span className="text-xs font-mono text-indigo-400 font-bold">CHALLENGE MODE</span>
+              </div>
+              <h3 className="text-lg font-bold text-white font-display">
+                Theory Conceptual Assessments
+              </h3>
+              <p className="text-xs text-slate-300 leading-relaxed">
+                Independent diagnostic testing suite featuring output prediction, code tracing, find-the-error, fill-in-step, and ISO/IEC C99 reasoning questions.
+              </p>
+            </div>
+            <button
+              onClick={() => {
+                soundManager.playClick();
+                onNavigate('theory', 'challenge');
+              }}
+              className="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs uppercase tracking-wider transition-all shadow-md active:scale-95 flex items-center justify-center gap-2"
+            >
+              <Zap className="w-4 h-4" />
+              <span>Enter Theory Challenge</span>
+            </button>
+          </div>
+
+          {/* Card 3: Laboratory Practice */}
+          <div className="p-6 rounded-3xl bg-slate-900/90 border border-slate-800 hover:border-emerald-500/60 transition-all flex flex-col justify-between space-y-4">
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="px-2.5 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-950 text-emerald-300 border border-emerald-800">
+                  CS107ES LABORATORY
+                </span>
+                <span className="text-xs font-mono text-emerald-400 font-bold">PRACTICE MODE</span>
+              </div>
+              <h3 className="text-lg font-bold text-white font-display">
+                Laboratory Workbench & Simulations
+              </h3>
+              <p className="text-xs text-slate-300 leading-relaxed">
+                6 prescribed laboratory groups with interactive simulator workbenches, line-level debug challenges, 16 reconciled practice programmes, and DOCX lab notes export.
+              </p>
+            </div>
+            <button
+              onClick={() => {
+                soundManager.playClick();
+                onNavigate('laboratory', 'practice');
+              }}
+              className="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-black text-xs uppercase tracking-wider transition-all shadow-md active:scale-95 flex items-center justify-center gap-2"
+            >
+              <FlaskConical className="w-4 h-4" />
+              <span>Enter Lab Practice</span>
+            </button>
+          </div>
+
+          {/* Card 4: Laboratory Challenge */}
+          <div className="p-6 rounded-3xl bg-slate-900/90 border border-slate-800 hover:border-amber-500/60 transition-all flex flex-col justify-between space-y-4">
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="px-2.5 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-950 text-amber-300 border border-amber-800">
+                  CS107ES LABORATORY
+                </span>
+                <span className="text-xs font-mono text-amber-400 font-bold">CHALLENGE MODE</span>
+              </div>
+              <h3 className="text-lg font-bold text-white font-display">
+                Laboratory Programming Arena
+              </h3>
+              <p className="text-xs text-slate-300 leading-relaxed">
+                Compact online programming environment: browse algorithmic challenges, write C99 code with line numbers, execute with custom stdin, and submit for evaluation.
+              </p>
+            </div>
+            <button
+              onClick={() => {
+                soundManager.playClick();
+                onNavigate('laboratory', 'challenge');
+              }}
+              className="w-full py-3 rounded-xl bg-amber-600 hover:bg-amber-500 text-slate-950 font-black text-xs uppercase tracking-wider transition-all shadow-md active:scale-95 flex items-center justify-center gap-2"
+            >
+              <Code2 className="w-4 h-4" />
+              <span>Enter Lab Challenge</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* ================================================================= */}
       {/* SECTION 3: WHAT MAKES IT DIFFERENT */}
       {/* ================================================================= */}
       <section className="space-y-8 max-w-6xl mx-auto">
@@ -462,11 +594,11 @@ export const HomePage: React.FC<HomePageProps> = ({
             <button
               onClick={() => {
                 soundManager.playClick();
-                onNavigate('syllabus');
+                onNavigate('progress');
               }}
               className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-mono text-cyan-300 font-semibold border border-slate-700 transition-colors flex items-center justify-center gap-1.5"
             >
-              <span>View Full Syllabus Map</span>
+              <span>View Full Progress & Coverage</span>
               <ChevronRight className="w-4 h-4" />
             </button>
           </div>
@@ -577,11 +709,11 @@ export const HomePage: React.FC<HomePageProps> = ({
             <button
               onClick={() => {
                 soundManager.playClick();
-                onNavigate('syllabus');
+                onNavigate('theory', 'practice');
               }}
               className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-slate-950 hover:bg-slate-800 border border-slate-800 text-xs font-mono text-slate-400 hover:text-white transition-colors text-center"
             >
-              Browse All 16 Missions
+              Browse All Theory Modules
             </button>
           </div>
         </div>
@@ -781,23 +913,24 @@ export const HomePage: React.FC<HomePageProps> = ({
             <button
               onClick={() => {
                 soundManager.playClick();
-                onNavigate('syllabus');
+                onNavigate('theory', 'practice');
               }}
               className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-black text-xs sm:text-sm uppercase tracking-wider transition-all shadow-xl active:scale-95 glow-cyan flex items-center justify-center gap-2"
             >
-              <span>ENTER SYLLABUS WORLD</span>
+              <Compass className="w-4 h-4" />
+              <span>THEORY PLATFORM</span>
               <ArrowRight className="w-4 h-4" />
             </button>
 
             <button
               onClick={() => {
                 soundManager.playClick();
-                onNavigate('lab');
+                onNavigate('laboratory', 'practice');
               }}
               className="w-full sm:w-auto px-6 py-4 rounded-2xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-white font-bold text-xs sm:text-sm uppercase tracking-wider transition-all shadow-md flex items-center justify-center gap-2"
             >
               <FlaskConical className="w-4 h-4 text-emerald-400" />
-              <span>Lab Workbench</span>
+              <span>LABORATORY ARENA</span>
             </button>
 
             <button
@@ -808,7 +941,7 @@ export const HomePage: React.FC<HomePageProps> = ({
               className="w-full sm:w-auto px-6 py-4 rounded-2xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-white font-bold text-xs sm:text-sm uppercase tracking-wider transition-all shadow-md flex items-center justify-center gap-2"
             >
               <BookOpen className="w-4 h-4 text-purple-400" />
-              <span>Notes Library</span>
+              <span>REVISION LIBRARY</span>
             </button>
           </div>
         </div>
