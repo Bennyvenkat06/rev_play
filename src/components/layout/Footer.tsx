@@ -1,6 +1,6 @@
 import React from 'react';
 import { OFFICIAL_SYLLABUS_SOURCE } from '../../data/syllabusData';
-import { ShieldCheck, BookOpen, ExternalLink, Gamepad2, Home, Compass, FlaskConical, FileText } from 'lucide-react';
+import { ShieldCheck, BookOpen, ExternalLink, Gamepad2, Home, Compass, FlaskConical, FileText, Trophy } from 'lucide-react';
 import { NavViewMode } from './Navbar';
 
 interface FooterProps {
@@ -21,7 +21,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
             </span>
           </div>
           <p className="text-slate-400 leading-relaxed">
-            Interactive syllabus gaming and high-yield revision platform for C programming.
+            Interactive academic learning and revision platform for C programming.
             Aligned strictly to {OFFICIAL_SYLLABUS_SOURCE.institution} {OFFICIAL_SYLLABUS_SOURCE.regulation}.
           </p>
           <div className="text-[11px] font-mono text-slate-500">
@@ -31,7 +31,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
 
         <div className="flex flex-wrap gap-8">
           <div>
-            <div className="text-xs font-bold uppercase text-slate-300 font-mono mb-2">Navigation</div>
+            <div className="text-xs font-bold uppercase text-slate-300 font-mono mb-2">Academic Sections</div>
             <ul className="space-y-1.5 text-slate-400">
               <li>
                 <button onClick={() => onNavigate('home')} className="hover:text-cyan-400 transition-colors flex items-center gap-1.5">
@@ -40,40 +40,40 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
                 </button>
               </li>
               <li>
-                <button onClick={() => onNavigate('syllabus')} className="hover:text-cyan-400 transition-colors flex items-center gap-1.5">
-                  <Compass className="w-3.5 h-3.5 text-cyan-400" />
-                  <span>Syllabus World (5 Units)</span>
+                <button onClick={() => onNavigate('theory')} className="hover:text-cyan-400 transition-colors flex items-center gap-1.5">
+                  <BookOpen className="w-3.5 h-3.5 text-cyan-400" />
+                  <span>Theory (CS103ES)</span>
                 </button>
               </li>
               <li>
-                <button onClick={() => onNavigate('lab')} className="hover:text-cyan-400 transition-colors flex items-center gap-1.5">
+                <button onClick={() => onNavigate('laboratory')} className="hover:text-cyan-400 transition-colors flex items-center gap-1.5">
                   <FlaskConical className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>CS107ES Lab Arena</span>
+                  <span>Laboratory (CS107ES)</span>
                 </button>
               </li>
             </ul>
           </div>
 
           <div>
-            <div className="text-xs font-bold uppercase text-slate-300 font-mono mb-2">Study & Revision</div>
+            <div className="text-xs font-bold uppercase text-slate-300 font-mono mb-2">Study & Progress</div>
             <ul className="space-y-1.5 text-slate-400">
               <li>
                 <button onClick={() => onNavigate('notes')} className="hover:text-cyan-400 transition-colors flex items-center gap-1.5">
-                  <BookOpen className="w-3.5 h-3.5 text-purple-400" />
-                  <span>Revision Notes (Word .docx & .txt)</span>
+                  <FileText className="w-3.5 h-3.5 text-purple-400" />
+                  <span>Revision Library (DOCX & TXT)</span>
                 </button>
               </li>
               <li>
-                <button onClick={() => onNavigate('coverage')} className="hover:text-cyan-400 transition-colors flex items-center gap-1.5">
-                  <ShieldCheck className="w-3.5 h-3.5 text-cyan-400" />
-                  <span>Coverage Matrix</span>
+                <button onClick={() => onNavigate('progress')} className="hover:text-cyan-400 transition-colors flex items-center gap-1.5">
+                  <Trophy className="w-3.5 h-3.5 text-amber-400" />
+                  <span>Progress & Coverage Matrix</span>
                 </button>
               </li>
             </ul>
           </div>
 
           <div>
-            <div className="text-xs font-bold uppercase text-slate-300 font-mono mb-2">Source Reference</div>
+            <div className="text-xs font-bold uppercase text-slate-300 font-mono mb-2">Governance & Authority</div>
             <ul className="space-y-1.5 text-slate-400">
               <li>
                 <a 
@@ -82,12 +82,12 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
                   rel="noopener noreferrer" 
                   className="hover:text-cyan-400 transition-colors flex items-center gap-1"
                 >
-                  <span>Official JNTUH PDF</span>
+                  <span>Official JNTUH Syllabus PDF</span>
                   <ExternalLink className="w-3 h-3" />
                 </a>
               </li>
               <li className="text-[11px] text-slate-600">
-                Peer Tutor workspace protected
+                JNTUH R25 B.Tech Curriculum
               </li>
             </ul>
           </div>
@@ -101,4 +101,3 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
     </footer>
   );
 };
-
