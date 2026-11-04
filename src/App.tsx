@@ -1,17 +1,16 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Lenis from 'lenis';
-import { Navbar, NavViewMode } from './components/layout/Navbar';
+import { Navbar, NavViewMode, LegacyNavViewMode } from './components/layout/Navbar';
 import { Footer } from './components/layout/Footer';
 import { HomePage } from './components/home/HomePage';
 import { CinematicIntro } from './components/intro/CinematicIntro';
-import { StatsHeader } from './components/dashboard/StatsHeader';
-import { WorldMap } from './components/dashboard/WorldMap';
-import { CoverageMatrix } from './components/coverage/CoverageMatrix';
+import { TheorySection, TheoryMode } from './components/theory/TheorySection';
+import { LabSection, LabMode } from './components/lab/LabSection';
+import { ProgressSection } from './components/dashboard/ProgressSection';
 import { NotesLibrary } from './components/notes/NotesLibrary';
 import { RevisionNotesModal } from './components/notes/RevisionNotesModal';
 import { GameResultsModal } from './components/results/GameResultsModal';
 import { MistakesReviewModal } from './components/dashboard/MistakesReviewModal';
-import { LabPracticeArena } from './components/lab/LabPracticeArena';
 
 // Games
 import { PredictTheOutput } from './games/unit1/PredictTheOutput';
@@ -46,9 +45,11 @@ import { RevisionNote } from './types/notes';
 export const App: React.FC = () => {
   const [progress, setProgress] = useState<UserProgress>(loadUserProgress);
   const [currentView, setCurrentView] = useState<NavViewMode>('home');
+  const [theoryMode, setTheoryMode] = useState<TheoryMode>('practice');
+  const [labMode, setLabMode] = useState<LabMode>('practice');
   const [activeGameId, setActiveGameId] = useState<string | null>(null);
 
-  // Always play the cinematic intro on every full application load and browser refresh
+  // Cinematic intro overlay on first visit/browser refresh
   const [showIntro, setShowIntro] = useState<boolean>(true);
 
   // Modals state
@@ -59,6 +60,54 @@ export const App: React.FC = () => {
   const [isResultsModalOpen, setIsResultsModalOpen] = useState(false);
 
   const [isMistakesModalOpen, setIsMistakesModalOpen] = useState(false);
+
+  // Parse URL hash for direct addressability:
+  // #/theory/practice, #/theory/challenge, #/laboratory/practice, #/laboratory/challenge, etc.
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash.replace(/^#\/?/, '').toLowerCase();
+      const parts = hash.split('/');
+      const section = parts[0];
+      const sub = parts[1];
+
+      if (section === 'theory') {
+        setCurrentView('theory');
+        if (sub === 'challenge' || sub === 'practice') {
+          setTheoryMode(sub);
+        }
+      } else if (section === 'laboratory' || section === 'lab') {
+        setCurrentView('laboratory');
+        if (sub === 'challenge' || sub === 'practice') {
+          setLabMode(sub);
+        }
+      } else if (section === 'notes') {
+        setCurrentView('notes');
+      } else if (section === 'progress' || section === 'coverage') {
+        setCurrentView('progress');
+      } else if (section === 'home') {
+        setCurrentView('home');
+      }
+    };
+
+    window.addEventListener('hashchange', handleHashChange);
+    handleHashChange();
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
+
+  // Update URL hash when view or mode changes
+  const updateUrlHash = useCallback((view: NavViewMode, tMode?: TheoryMode, lMode?: LabMode) => {
+    try {
+      if (view === 'theory') {
+        window.location.hash = `#/theory/${tMode || theoryMode}`;
+      } else if (view === 'laboratory') {
+        window.location.hash = `#/laboratory/${lMode || labMode}`;
+      } else {
+        window.location.hash = `#/${view}`;
+      }
+    } catch (e) {
+      // Ignored in non-browser environments
+    }
+  }, [theoryMode, labMode]);
 
   // Lenis smooth scroll initialization (respecting reduced motion)
   useEffect(() => {
@@ -98,6 +147,34 @@ export const App: React.FC = () => {
     if (updated) soundManager.playClick();
   };
 
+  const handleNavigate = (view: NavViewMode | LegacyNavViewMode, subMode?: 'practice' | 'challenge') => {
+    setActiveGameId(null);
+    let targetView: NavViewMode = 'home';
+
+    if (view === 'theory' || view === 'syllabus') {
+      targetView = 'theory';
+      const m = (subMode as TheoryMode) || theoryMode;
+      setTheoryMode(m);
+      updateUrlHash('theory', m, labMode);
+    } else if (view === 'laboratory' || view === 'lab') {
+      targetView = 'laboratory';
+      const m = (subMode as LabMode) || labMode;
+      setLabMode(m);
+      updateUrlHash('laboratory', theoryMode, m);
+    } else if (view === 'progress' || view === 'coverage') {
+      targetView = 'progress';
+      updateUrlHash('progress');
+    } else if (view === 'notes') {
+      targetView = 'notes';
+      updateUrlHash('notes');
+    } else {
+      targetView = 'home';
+      updateUrlHash('home');
+    }
+
+    setCurrentView(targetView);
+  };
+
   const handleOpenNotes = (notesId: string) => {
     const note = REVISION_NOTES_DATABASE[notesId] || REVISION_NOTES_DATABASE['notes-u1-fundamentals'];
     setActiveNote(note);
@@ -107,8 +184,10 @@ export const App: React.FC = () => {
   const handlePlayGame = (gameId: string) => {
     soundManager.playClick();
     if (gameId === 'game-lab-arena') {
-      setCurrentView('lab');
+      setCurrentView('laboratory');
+      setLabMode('practice');
       setActiveGameId(null);
+      updateUrlHash('laboratory', theoryMode, 'practice');
     } else {
       setActiveGameId(gameId);
     }
@@ -137,7 +216,9 @@ export const App: React.FC = () => {
   const handleReturnToUnit = () => {
     setIsResultsModalOpen(false);
     setActiveGameId(null);
-    setCurrentView('syllabus');
+    setCurrentView('theory');
+    setTheoryMode('practice');
+    updateUrlHash('theory', 'practice', labMode);
   };
 
   const renderActiveGame = () => {
@@ -201,9 +282,9 @@ export const App: React.FC = () => {
             <p>Game "{activeGameId}" is loading...</p>
             <button 
               onClick={() => setActiveGameId(null)} 
-              className="mt-4 px-4 py-2 bg-slate-800 rounded-xl text-white text-xs"
+              className="mt-4 px-4 py-2 bg-slate-800 rounded-xl text-white text-xs hover:bg-slate-700"
             >
-              Return to Dashboard
+              Return to Theory
             </button>
           </div>
         );
@@ -217,7 +298,7 @@ export const App: React.FC = () => {
         <CinematicIntro onComplete={handleIntroComplete} />
       )}
 
-      {/* Subtle Floating Gradient Ambient Orbs (Clipped cleanly to viewport) */}
+      {/* Subtle Floating Gradient Ambient Orbs */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
         <div className="absolute top-12 left-0 sm:-left-20 w-60 sm:w-96 h-60 sm:h-96 bg-cyan-600/10 rounded-full blur-3xl floating-orb-1" />
         <div className="absolute bottom-12 right-0 sm:-right-20 w-60 sm:w-96 h-60 sm:h-96 bg-indigo-600/10 rounded-full blur-3xl floating-orb-2" />
@@ -226,10 +307,7 @@ export const App: React.FC = () => {
       {/* Top HUD Navigation */}
       <Navbar
         currentView={currentView}
-        onNavigate={(v) => {
-          setActiveGameId(null);
-          setCurrentView(v);
-        }}
+        onNavigate={(v) => handleNavigate(v)}
         progress={progress}
         onSoundToggle={handleSoundToggle}
       />
@@ -237,48 +315,48 @@ export const App: React.FC = () => {
       {/* Main View Area */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-6 relative z-10">
         {activeGameId ? (
-          /* Render Currently Active Playable Game Arena */
+          /* Render Active Interactive Mission Arena */
           <div className="animate-in fade-in zoom-in-95 duration-200">
             {renderActiveGame()}
           </div>
         ) : (
           <div className="space-y-8 animate-in fade-in duration-200">
-            {/* 1. New Home View */}
+            {/* 1. Home View */}
             {currentView === 'home' && (
               <HomePage
                 progress={progress}
-                onNavigate={(v) => {
-                  setActiveGameId(null);
-                  setCurrentView(v);
-                }}
+                onNavigate={(v, sub) => handleNavigate(v, sub)}
                 onPlayGame={handlePlayGame}
               />
             )}
 
-            {/* 2. Syllabus World View (Relocated complete existing syllabus-world experience) */}
-            {currentView === 'syllabus' && (
-              <>
-                <StatsHeader
-                  progress={progress}
-                  onOpenMistakesReview={() => setIsMistakesModalOpen(true)}
-                />
-                <WorldMap
-                  progress={progress}
-                  onPlayGame={handlePlayGame}
-                  onOpenNotes={handleOpenNotes}
-                  onOpenLabArena={() => setCurrentView('lab')}
-                />
-              </>
-            )}
-
-            {/* 3. CS107ES Lab Arena View */}
-            {currentView === 'lab' && (
-              <LabPracticeArena
+            {/* 2. Theory (CS103ES): Practice & Challenge Modes */}
+            {currentView === 'theory' && (
+              <TheorySection
+                initialMode={theoryMode}
+                onModeChange={(m) => {
+                  setTheoryMode(m);
+                  updateUrlHash('theory', m, labMode);
+                }}
+                progress={progress}
+                onPlayGame={handlePlayGame}
                 onOpenNotes={handleOpenNotes}
               />
             )}
 
-            {/* 4. Revision Notes Library View */}
+            {/* 3. Laboratory (CS107ES): Practice & Challenge Modes */}
+            {currentView === 'laboratory' && (
+              <LabSection
+                initialMode={labMode}
+                onModeChange={(m) => {
+                  setLabMode(m);
+                  updateUrlHash('laboratory', theoryMode, m);
+                }}
+                onOpenNotes={handleOpenNotes}
+              />
+            )}
+
+            {/* 4. Revision Library View (22 detailed notes with DOCX & TXT download) */}
             {currentView === 'notes' && (
               <NotesLibrary
                 onOpenNoteModal={handleOpenNotes}
@@ -286,9 +364,11 @@ export const App: React.FC = () => {
               />
             )}
 
-            {/* 5. JNTUH R25 Coverage Matrix View */}
-            {currentView === 'coverage' && (
-              <CoverageMatrix
+            {/* 5. Progress & Coverage Matrix View */}
+            {currentView === 'progress' && (
+              <ProgressSection
+                progress={progress}
+                onOpenMistakesReview={() => setIsMistakesModalOpen(true)}
                 onPlayGame={handlePlayGame}
                 onOpenNotes={handleOpenNotes}
               />
@@ -299,10 +379,7 @@ export const App: React.FC = () => {
 
       {/* Footer */}
       <Footer
-        onNavigate={(v) => {
-          setActiveGameId(null);
-          setCurrentView(v);
-        }}
+        onNavigate={(v) => handleNavigate(v)}
       />
 
       {/* Revision Notes Modal with Working Word (.docx) & Plain-Text (.txt) Download */}
